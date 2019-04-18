@@ -26,7 +26,9 @@ import org.benben.modules.system.util.JeecgDataAutorUtils;
 public class JwtUtil {
 
 	// 过期时间30分钟
-	public static final long EXPIRE_TIME = 30 * 60 * 1000;
+	public static long EXPIRE_TIME = 30 * 60 * 1000;
+	// 过期时间7天
+	public static long APP_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
 
 	/**
 	 * 校验token是否正确
