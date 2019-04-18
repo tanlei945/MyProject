@@ -44,6 +44,14 @@ public interface CommonConstant {
     public static int  TOKEN_EXPIRE_TIME  = 3600; //3600秒即是一小时
     
     public static String PREFIX_USER_TOKEN  = "PREFIX_USER_TOKEN ";
+
+	public static String PREFIX_MEMBER_TOKEN  = "PREFIX_MEMBER_TOKEN ";
+
+	public static String SIGN_SYS_USER = "sysUser@";
+
+	public static String SIGN_MEMBER_USER = "memberUser@";
+
+	public static String SMS_EVENT = "login";
     
     /**
      *  0：一级菜单

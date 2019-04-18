@@ -70,6 +70,13 @@ public class ShiroConfig {
 		//TODO 排除Online请求
 		filterChainDefinitionMap.put("/auto/cgform/**", "anon");
 		filterChainDefinitionMap.put("/online/cgreport/api/exportXls/**", "anon");
+
+		filterChainDefinitionMap.put("/api/user/login", "anon");
+		filterChainDefinitionMap.put("/api/user/mobilelogin", "anon");
+		filterChainDefinitionMap.put("/api/user/wxLogin", "anon");
+		filterChainDefinitionMap.put("/api/user/callBack", "anon");
+		filterChainDefinitionMap.put("/locaQQLogin", "anon");
+		filterChainDefinitionMap.put("/qqLoginCallback", "anon");
         
 		// 添加自己的过滤器并且取名为jwt
 		Map<String, Filter> filterMap = new HashMap<String, Filter>(1);
