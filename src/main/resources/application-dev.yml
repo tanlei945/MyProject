@@ -130,3 +130,8 @@ weiXin:
   appSecret: 5c5de6885810fc002a351c8654809ed6
   token: cloudtop
   backUrl: http://iqci3m.natappfree.cc/jeecg-boot/api/user/callBack
+
+#邮箱
+mail:
+  username: sanshixuxian@163.com
+  password: a75861943

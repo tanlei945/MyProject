@@ -193,7 +193,7 @@ public class QuartzJobController {
 	 * @return
 	 */
 	@RequestMapping(value = "/pause", method = RequestMethod.POST)
-	@ApiOperation(value = "暂停定时任务")
+//	@ApiOperation(value = "暂停定时任务")
 	public Result<Object> pauseJob(@RequestBody QuartzJob job) {
 
 		try {
@@ -212,7 +212,7 @@ public class QuartzJobController {
 	 * @return
 	 */
 	@RequestMapping(value = "/resume", method = RequestMethod.POST)
-	@ApiOperation(value = "恢复定时任务")
+//	@ApiOperation(value = "恢复定时任务")
 	public Result<Object> resumeJob(@RequestBody QuartzJob job) {
 
 		try {

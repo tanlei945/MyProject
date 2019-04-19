@@ -77,7 +77,7 @@ public class JeecgDemoController {
 	 * @return
 	 */
 
-	@ApiOperation(value = "获取Demo数据列表", notes = "获取所有Demo数据列表", produces = "application/json")
+//	@ApiOperation(value = "获取Demo数据列表", notes = "获取所有Demo数据列表", produces = "application/json")
 	@GetMapping(value = "/list")
 	public Result<IPage<JeecgDemo>> list(JeecgDemo jeecgDemo, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
 			HttpServletRequest req) {
@@ -223,7 +223,7 @@ public class JeecgDemoController {
 	 * @param id
 	 * @return
 	 */
-	@ApiOperation(value = "获取Demo信息", tags = { "获取Demo信息" }, notes = "注意问题点")
+//	@ApiOperation(value = "获取Demo信息", tags = { "获取Demo信息" }, notes = "注意问题点")
 	@GetMapping(value = "/queryById")
 	public Result<JeecgDemo> queryById(@ApiParam(name = "id", value = "示例id", required = true) @RequestParam(name = "id", required = true) String id) {
 		Result<JeecgDemo> result = new Result<JeecgDemo>();
