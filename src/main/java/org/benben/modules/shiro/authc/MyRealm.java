@@ -18,8 +18,8 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.benben.common.constant.CommonConstant;
 import org.benben.common.util.RedisUtil;
 import org.benben.common.util.oConvertUtils;
-import org.benben.modules.business.userinfo.entity.UserInfo;
-import org.benben.modules.business.userinfo.service.IUserInfoService;
+import org.benben.modules.business.user.entity.User;
+import org.benben.modules.business.user.service.IUserService;
 import org.benben.modules.shiro.authc.util.JwtUtil;
 import org.benben.modules.system.entity.SysPermission;
 import org.benben.modules.system.entity.SysUser;
@@ -46,7 +46,7 @@ public class MyRealm extends AuthorizingRealm {
     @Autowired
     private ISysUserService sysUserService;
     @Autowired
-    private IUserInfoService userInfoService;
+    private IUserService userService;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
@@ -129,7 +129,7 @@ public class MyRealm extends AuthorizingRealm {
         int status = 0;
         int number = 0;
         SysUser sysUser = new SysUser();
-        UserInfo userInfo = new UserInfo();
+        User userInfo = new User();
 
         log.debug("————身份认证方法————");
         String token = (String) auth.getCredentials();
@@ -162,7 +162,7 @@ public class MyRealm extends AuthorizingRealm {
         // 会员用户登录
         if (StringUtils.equals(CommonConstant.SIGN_MEMBER_USER, sign)) {
 
-            userInfo = userInfoService.getByUsername(username);
+            userInfo = userService.getByUsername(username);
             password = userInfo.getPassword();
             status = userInfo.getStatus();
             if (userInfo == null) {

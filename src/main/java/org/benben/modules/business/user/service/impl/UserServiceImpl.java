@@ -1,4 +1,4 @@
-package org.benben.modules.business.userinfo.service.impl;
+package org.benben.modules.business.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.qq.connect.QQConnectException;
@@ -6,9 +6,9 @@ import com.qq.connect.utils.QQConnectConfig;
 import org.apache.shiro.SecurityUtils;
 import org.benben.common.api.vo.RestResponseBean;
 import org.benben.common.menu.ResultEnum;
-import org.benben.modules.business.userinfo.entity.UserInfo;
-import org.benben.modules.business.userinfo.mapper.UserInfoMapper;
-import org.benben.modules.business.userinfo.service.IUserInfoService;
+import org.benben.modules.business.user.entity.User;
+import org.benben.modules.business.user.mapper.UserMapper;
+import org.benben.modules.business.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,48 +19,48 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @Description: 会员表
+ * @Description: 普通用户
  * @author： jeecg-boot
- * @date： 2019-04-18
+ * @date：   2019-04-19
  * @version： V1.0
  */
 @Service
-public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements IUserInfoService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     @Autowired
-    private UserInfoMapper userInfoMapper;
+    private UserMapper userMapper;
 
     @Override
-    public UserInfo getByUsername(String username) {
-        QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
+    public User getByUsername(String username) {
+        QueryWrapper<User> userInfoQueryWrapper = new QueryWrapper<>();
         userInfoQueryWrapper.eq("username", username);
-        UserInfo userInfo = userInfoMapper.selectOne(userInfoQueryWrapper);
-        return userInfo;
+        User user = userMapper.selectOne(userInfoQueryWrapper);
+        return user;
     }
 
     @Override
-    public UserInfo queryByMobile(String moblie) {
-        QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
+    public User queryByMobile(String moblie) {
+        QueryWrapper<User> userInfoQueryWrapper = new QueryWrapper<>();
         userInfoQueryWrapper.eq("mobile", moblie);
-        UserInfo userInfo = userInfoMapper.selectOne(userInfoQueryWrapper);
+        User userInfo = userMapper.selectOne(userInfoQueryWrapper);
         return userInfo;
     }
 
     @Override
-    public RestResponseBean qqBinding(String openID, UserInfo userInfo) {
+    public RestResponseBean qqBinding(String openID, User userInfo) {
 
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq("qq_id", openID);
-        UserInfo result = userInfoMapper.selectOne(queryWrapper);
+        User result = userMapper.selectOne(queryWrapper);
         if (result != null) {
             return new RestResponseBean(ResultEnum.USER_EXIST.getValue(), ResultEnum.USER_EXIST.getDesc(), null);
         }
 
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
 
         userInfo.setQqId(openID);
-        int i = userInfoMapper.updateById(userInfo);
+        int i = userMapper.updateById(userInfo);
         if (i == 0)
             return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
         return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(), ResultEnum.OPERATION_SUCCESS.getDesc(), null);
@@ -74,12 +74,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
      * @return
      */
     @Override
-    public UserInfo queryByQQOpenId(String openId) {
+    public User queryByQQOpenId(String openId) {
 
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("qq_id", openId);
 
-        return userInfoMapper.selectOne(queryWrapper);
+        return userMapper.selectOne(queryWrapper);
     }
 
 
@@ -90,12 +90,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
      * @return
      */
     @Override
-    public UserInfo queryByWeChatOpenId(String openId) {
+    public User queryByWeChatOpenId(String openId) {
 
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("wx_id", openId);
 
-        return userInfoMapper.selectOne(queryWrapper);
+        return userMapper.selectOne(queryWrapper);
     }
 
     /**
@@ -108,14 +108,14 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     @Transactional
     public Boolean bindingWeChat(String openId) {
 
-        UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
 
-        if (userInfo == null) {
+        if (user == null) {
             return false;
         }
 
-        userInfo.setWxId(openId);
-        userInfoMapper.updateById(userInfo);
+        user.setWxId(openId);
+        userMapper.updateById(user);
         return true;
     }
 
