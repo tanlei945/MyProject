@@ -1,5 +1,6 @@
 package org.benben.modules.business.commen.controller;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.benben.common.api.vo.RestResponseBean;
@@ -25,6 +26,7 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/sms/")
+@Api(tags = "短信接口")
 public class SmsController {
 
     @Autowired
@@ -65,7 +67,7 @@ public class SmsController {
      * @return
      */
     @GetMapping(value = "/check")
-    @ApiOperation(value = "检验短信验证码", notes = "检验短信验证码")
+    @ApiOperation(value = "检验短信验证码", tags = "短信接口",notes = "检验短信验证码")
     public RestResponseBean check(@Valid SmsDTO smsDTO, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors() || StringUtils.isBlank(smsDTO.getCaptcha())) {
@@ -109,7 +111,7 @@ public class SmsController {
 
 
     @GetMapping(value = "/send")
-    @ApiOperation(value = "发送验证码 ", notes = "发送验证码 ")
+    @ApiOperation(value = "发送验证码 ", tags = "短信接口", notes = "发送验证码 ")
     public RestResponseBean send(@RequestParam String mobile, @RequestParam String event) {
 
         if (StringUtils.isBlank(mobile) || StringUtils.isBlank(event)) {

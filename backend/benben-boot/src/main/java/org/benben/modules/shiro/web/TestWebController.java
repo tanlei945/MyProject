@@ -34,7 +34,7 @@ public class TestWebController {
     }
  
     @PostMapping("/login")
-    @ApiOperation(value="用户登录", notes="用户登录")
+//    @ApiOperation(value="用户登录", notes="用户登录")
     public ResponseBean login(@RequestParam("username") String username,
                               @RequestParam("password") String password) {
     	SysUser user = userService.getUserByName(username);

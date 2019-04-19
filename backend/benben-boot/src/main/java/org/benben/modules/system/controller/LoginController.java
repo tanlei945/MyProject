@@ -47,7 +47,7 @@ public class LoginController {
 	
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	@ApiOperation("登录接口")
+//	@ApiOperation("登录接口")
 	public Result<JSONObject> login(@RequestBody SysLoginModel sysLoginModel) {
 		Result<JSONObject> result = new Result<JSONObject>();
 		String username = sysLoginModel.getUsername();
