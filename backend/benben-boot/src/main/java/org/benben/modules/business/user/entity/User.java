@@ -1,4 +1,4 @@
-package org.benben.modules.business.userinfo.entity;
+package org.benben.modules.business.user.entity;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -11,14 +11,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.jeecgframework.poi.excel.annotation.Excel;
 
 /**
- * @Description: 会员表
+ * @Description: 普通用户
  * @author： jeecg-boot
- * @date：   2019-04-18
+ * @date：   2019-04-19
  * @version： V1.0
  */
 @Data
-@TableName("user_info")
-public class UserInfo implements Serializable {
+@TableName("user")
+public class User implements Serializable {
     private static final long serialVersionUID = 1L;
     
 	/**ID*/
@@ -54,8 +54,8 @@ public class UserInfo implements Serializable {
 	/**等级*/
 	@Excel(name = "等级", width = 15)
 	private java.lang.Integer level;
-	/**性别（1：男 2：女）*/
-	@Excel(name = "性别（1：男 2：女）", width = 15)
+	/**性别  0/男,1/女*/
+	@Excel(name = "性别  0/男,1/女", width = 15)
 	private java.lang.Integer sex;
 	/**生日*/
 	@Excel(name = "生日", width = 20, format = "yyyy-MM-dd HH:mm:ss")

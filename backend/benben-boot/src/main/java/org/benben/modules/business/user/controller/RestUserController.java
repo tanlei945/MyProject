@@ -1,4 +1,4 @@
-package org.benben.modules.business.userinfo.controller;
+package org.benben.modules.business.user.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -25,8 +25,8 @@ import org.benben.common.util.oConvertUtils;
 import org.benben.modules.business.commen.dto.SmsDTO;
 import org.benben.modules.business.commen.service.ISMSService;
 import org.benben.modules.business.commen.service.IWxService;
-import org.benben.modules.business.userinfo.entity.UserInfo;
-import org.benben.modules.business.userinfo.service.IUserInfoService;
+import org.benben.modules.business.user.entity.User;
+import org.benben.modules.business.user.service.IUserService;
 import org.benben.modules.shiro.authc.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -43,19 +43,18 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * @Title: Controller
- * @Description: 会员表
- * @author： jeecg-boot
- * @date： 2019-04-18
- * @version： V1.0
- */
+* @Title: Controller
+* @Description: 普通用户
+* @author： jeecg-boot
+* @date：   2019-04-19
+* @version： V1.0
+*/
 @RestController
 @RequestMapping("/api/user")
 @Slf4j
-public class RestUserInfoController {
-
+public class RestUserController {
     @Autowired
-    private IUserInfoService userInfoService;
+    private IUserService userService;
 
     @Autowired
     private ISysBaseAPI sysBaseAPI;
@@ -75,20 +74,20 @@ public class RestUserInfoController {
     public RestResponseBean login(@RequestParam("username") String username, @RequestParam("password") String password) {
 
         JSONObject obj = new JSONObject();
-        UserInfo userInfo = userInfoService.getByUsername(username);
+        User user = userService.getByUsername(username);
 
-        if (userInfo == null) {
+        if (user == null) {
             sysBaseAPI.addLog("登录失败，用户名:" + username + "不存在！", CommonConstant.LOG_TYPE_1, null);
             return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
         } else {
             //密码验证
-            String userpassword = PasswordUtil.encrypt(username, password, userInfo.getSalt());
-            String syspassword = userInfo.getPassword();
+            String userpassword = PasswordUtil.encrypt(username, password, user.getSalt());
+            String syspassword = user.getPassword();
             if (!syspassword.equals(userpassword)) {
                 return new RestResponseBean(ResultEnum.USER_PWD_ERROR.getValue(), ResultEnum.USER_PWD_ERROR.getDesc(), null);
             }
             //调用公共方法
-            obj = tokenBuild(userInfo);
+            obj = tokenBuild(user);
         }
 
         return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), obj);
@@ -98,7 +97,7 @@ public class RestUserInfoController {
     /**
      * 分页列表查询
      *
-     * @param userInfo
+     * @param user
      * @param pageNo
      * @param pageSize
      * @param req
@@ -107,13 +106,13 @@ public class RestUserInfoController {
 
     @GetMapping(value = "/list")
     @ApiOperation(value = "会员列表", notes = "会员列表")
-    public Result<IPage<UserInfo>> queryPageList(UserInfo userInfo,
+    public Result<IPage<User>> queryPageList(User user,
                                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                  HttpServletRequest req) {
-        Result<IPage<UserInfo>> result = new Result<IPage<UserInfo>>();
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<UserInfo>(userInfo);
-        Page<UserInfo> page = new Page<UserInfo>(pageNo, pageSize);
+        Result<IPage<User>> result = new Result<IPage<User>>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>(user);
+        Page<User> page = new Page<User>(pageNo, pageSize);
         //排序逻辑 处理
         String column = req.getParameter("column");
         String order = req.getParameter("order");
@@ -124,7 +123,7 @@ public class RestUserInfoController {
                 queryWrapper.orderByDesc(oConvertUtils.camelToUnderline(column));
             }
         }
-        IPage<UserInfo> pageList = userInfoService.page(page, queryWrapper);
+        IPage<User> pageList = userService.page(page, queryWrapper);
         //log.debug("查询当前页："+pageList.getCurrent());
         //log.debug("查询当前页数量："+pageList.getSize());
         //log.debug("查询结果数量："+pageList.getRecords().size());
@@ -137,21 +136,21 @@ public class RestUserInfoController {
     /**
      * 添加
      *
-     * @param userInfo
+     * @param user
      * @return
      */
     @PostMapping(value = "/add")
     @ApiOperation(value = "会员列表", notes = "会员列表")
-    public Result<UserInfo> add(@RequestBody UserInfo userInfo) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> add(@RequestBody User user) {
+        Result<User> result = new Result<User>();
 
         try {
-            userInfo.setCreateTime(new Date());//设置创建时间
+            user.setCreateTime(new Date());//设置创建时间
             String salt = oConvertUtils.randomGen(8);
-            userInfo.setSalt(salt);
-            String passwordEncode = PasswordUtil.encrypt(userInfo.getUsername(), userInfo.getPassword(), salt);
-            userInfo.setPassword(passwordEncode);
-            userInfoService.save(userInfo);
+            user.setSalt(salt);
+            String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
+            user.setPassword(passwordEncode);
+            userService.save(user);
             result.success("添加成功！");
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,19 +164,19 @@ public class RestUserInfoController {
     /**
      * 编辑
      *
-     * @param userInfo
+     * @param user
      * @return
      */
     @PutMapping(value = "/edit")
     @ApiOperation(value = "会员编辑", notes = "会员编辑")
-    public Result<UserInfo> eidt(@RequestBody UserInfo userInfo) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> eidt(@RequestBody User user) {
+        Result<User> result = new Result<User>();
 
-        UserInfo userInfoEntity = userInfoService.getById(userInfo.getId());
-        if (userInfoEntity == null) {
+        User userEntity = userService.getById(user.getId());
+        if (userEntity == null) {
             result.error500("未找到对应实体");
         } else {
-            boolean ok = userInfoService.updateById(userInfo);
+            boolean ok = userService.updateById(user);
             //TODO 返回false说明什么？
             if (ok) {
                 result.success("修改成功!");
@@ -195,14 +194,14 @@ public class RestUserInfoController {
      */
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "会员删除", notes = "会员删除")
-    public Result<UserInfo> delete(@RequestParam(name = "id", required = true) String id) {
-        Result<UserInfo> result = new Result<UserInfo>();
-        UserInfo userInfo = userInfoService.getById(id);
+    public Result<User> delete(@RequestParam(name = "id", required = true) String id) {
+        Result<User> result = new Result<User>();
+        User user = userService.getById(id);
 
-        if (userInfo == null) {
+        if (user == null) {
             result.error500("未找到对应实体");
         } else {
-            boolean ok = userInfoService.removeById(id);
+            boolean ok = userService.removeById(id);
             if (ok) {
                 result.success("删除成功!");
             }
@@ -219,13 +218,13 @@ public class RestUserInfoController {
      */
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除", notes = "批量删除")
-    public Result<UserInfo> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<User> result = new Result<User>();
 
         if (ids == null || "".equals(ids.trim())) {
             result.error500("参数不识别！");
         } else {
-            this.userInfoService.removeByIds(Arrays.asList(ids.split(",")));
+            this.userService.removeByIds(Arrays.asList(ids.split(",")));
             result.success("删除成功!");
         }
         return result;
@@ -239,14 +238,14 @@ public class RestUserInfoController {
      */
     @GetMapping(value = "/queryById")
     @ApiOperation(value = "通过id查询会员", notes = "通过id查询会员")
-    public Result<UserInfo> queryById(@RequestParam(name = "id", required = true) String id) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> queryById(@RequestParam(name = "id", required = true) String id) {
+        Result<User> result = new Result<User>();
 
-        UserInfo userInfo = userInfoService.getById(id);
-        if (userInfo == null) {
+        User user = userService.getById(id);
+        if (user == null) {
             result.error500("未找到对应实体");
         } else {
-            result.setResult(userInfo);
+            result.setResult(user);
             result.setSuccess(true);
         }
         return result;
@@ -255,24 +254,24 @@ public class RestUserInfoController {
     /**
      * 会员注册
      *
-     * @param userInfo
+     * @param user
      * @return
      */
     @GetMapping(value = "/register")
     @ApiOperation(value = "会员注册", notes = "会员注册")
-    public RestResponseBean register(UserInfo userInfo) {
+    public RestResponseBean register(User user) {
         RestResponseBean RestResponseBean = new RestResponseBean();
 
         try {
 
             String salt = oConvertUtils.randomGen(8);
-            userInfo.setSalt(salt);
-            String passwordEncode = PasswordUtil.encrypt(userInfo.getUsername(), userInfo.getPassword(), salt);
-            userInfo.setPassword(passwordEncode);
-            userInfoService.save(userInfo);
-            QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
-            userInfoQueryWrapper.eq("username", userInfo.getUsername());
-            UserInfo one = userInfoService.getOne(userInfoQueryWrapper);
+            user.setSalt(salt);
+            String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
+            user.setPassword(passwordEncode);
+            userService.save(user);
+            QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+            userQueryWrapper.eq("username", user.getUsername());
+            User one = userService.getOne(userQueryWrapper);
             RestResponseBean.setData(one);
 
 
@@ -288,25 +287,25 @@ public class RestUserInfoController {
     /**
      * 会员修改
      *
-     * @param userInfo
+     * @param user
      * @return
      */
     @GetMapping(value = "/profile")
     @ApiOperation(value = "会员修改", notes = "会员修改")
-    public RestResponseBean profile(UserInfo userInfo) {
+    public RestResponseBean profile(User user) {
         RestResponseBean RestResponseBean = new RestResponseBean();
 
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
-        if (userInfo.getAvatar() != null || userInfo.getAvatar() != "")
-            user.setAvatar(userInfo.getAvatar());
-        if (userInfo.getUsername() != null || userInfo.getUsername() != "")
-            user.setUsername(userInfo.getUsername());
-        if (userInfo.getNickname() != null || userInfo.getNickname() != "")
-            user.setNickname(userInfo.getNickname());
-        if (userInfo.getBio() != null || userInfo.getBio() != "")
-            user.setBio(userInfo.getBio());
+        User userEntity = (User) SecurityUtils.getSubject().getPrincipal();
+        if (user.getAvatar() != null || user.getAvatar() != "")
+            userEntity.setAvatar(user.getAvatar());
+        if (user.getUsername() != null || user.getUsername() != "")
+            userEntity.setUsername(user.getUsername());
+        if (user.getNickname() != null || user.getNickname() != "")
+            userEntity.setNickname(user.getNickname());
+        if (user.getBio() != null || user.getBio() != "")
+            userEntity.setBio(user.getBio());
 
-        boolean b = userInfoService.updateById(user);
+        boolean b = userService.updateById(userEntity);
 
         if (b)
             RestResponseBean.setMsg(ResultEnum.OPERATION_SUCCESS.getDesc());
@@ -321,10 +320,10 @@ public class RestUserInfoController {
      */
     @GetMapping(value = "/queryByName")
     @ApiOperation(value = "根据姓名查找", notes = "根据姓名查找")
-    public UserInfo queryByName(@RequestParam String username) {
-        QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
-        userInfoQueryWrapper.eq("username", username);
-        UserInfo user = userInfoService.getOne(userInfoQueryWrapper);
+    public User queryByName(@RequestParam String username) {
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("username", username);
+        User user = userService.getOne(userQueryWrapper);
         return user;
     }
 
@@ -337,8 +336,8 @@ public class RestUserInfoController {
      */
     @GetMapping(value = "/changeEmail")
     @ApiOperation(value = "修改邮箱", notes = "修改邮箱")
-    public Result<UserInfo> changeEmail(@RequestParam String email, @RequestParam String captcha) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> changeEmail(@RequestParam String email, @RequestParam String captcha) {
+        Result<User> result = new Result<User>();
         RestResponseBean RestResponseBean = new RestResponseBean();
 
         if (!"yanzheng".equals(captcha)) {
@@ -349,9 +348,9 @@ public class RestUserInfoController {
             result.error500("邮箱不允许为空");
             return result;
         }
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
         user.setEmail(email);
-        boolean b = userInfoService.updateById(user);
+        boolean b = userService.updateById(user);
         if (b)
             result.success("修改成功");
         return result;
@@ -368,8 +367,8 @@ public class RestUserInfoController {
      */
     @GetMapping(value = "/changeMobile")
     @ApiOperation(value = "修改手机号", notes = "修改手机号")
-    public Result<UserInfo> changeMobile(@RequestParam String mobile, @RequestParam String captcha) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> changeMobile(@RequestParam String mobile, @RequestParam String captcha) {
+        Result<User> result = new Result<User>();
 
         if (mobile == null || mobile == "") {
             result.error500("手机号不允许为空");
@@ -380,9 +379,9 @@ public class RestUserInfoController {
             return result;
         }
         //得到登录会员
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
         user.setMobile(mobile);
-        boolean b = userInfoService.updateById(user);
+        boolean b = userService.updateById(user);
         if (b)
             result.success("修改成功");
         return result;
@@ -398,8 +397,8 @@ public class RestUserInfoController {
      */
     @GetMapping(value = "/changeResetpwd")
     @ApiOperation(value = "修改密码", notes = "修改密码")
-    public Result<UserInfo> changeResetpwd(@RequestParam String mobile, @RequestParam String captcha, @RequestParam String newpassword) {
-        Result<UserInfo> result = new Result<UserInfo>();
+    public Result<User> changeResetpwd(@RequestParam String mobile, @RequestParam String captcha, @RequestParam String newpassword) {
+        Result<User> result = new Result<User>();
 
         if (mobile == null || mobile == "") {
             result.error500("手机号不允许为空");
@@ -419,13 +418,13 @@ public class RestUserInfoController {
             return result;
         }
 
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
         //随机得到盐
         String salt = oConvertUtils.randomGen(8);
         user.setSalt(salt);
         String passwordEncode = PasswordUtil.encrypt(user.getUsername(), newpassword, salt);
         user.setPassword(passwordEncode);
-        boolean b = userInfoService.updateById(user);
+        boolean b = userService.updateById(user);
 
         if (b)
             result.success("修改成功");
@@ -440,9 +439,9 @@ public class RestUserInfoController {
      */
     @GetMapping("/logOut")
     @ApiOperation(value = "退出", notes = "退出")
-    public Result<UserInfo> logOut() {
-        Result<UserInfo> result = new Result<UserInfo>();
-        UserInfo user = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+    public Result<User> logOut() {
+        Result<User> result = new Result<User>();
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
         String token = JwtUtil.sign(CommonConstant.SIGN_MEMBER_USER + user.getUsername(), user.getPassword());
         redisUtil.del(CommonConstant.SIGN_MEMBER_USER + token);
         Subject subject = SecurityUtils.getSubject();
@@ -487,13 +486,13 @@ public class RestUserInfoController {
                 return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(), ResultEnum.SMS_CODE_ERROR.getDesc(), null);
         }
 
-        UserInfo userInfo = userInfoService.queryByMobile(smsDTO.getMobile());
+        User user = userService.queryByMobile(smsDTO.getMobile());
 
-        if (userInfo == null) {
+        if (user == null) {
             return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
         }
 
-        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userInfo));
+        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
     }
 
     /**
@@ -528,23 +527,23 @@ public class RestUserInfoController {
             return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
         }
         //查询登录状态
-        UserInfo loginUser = userInfoService.queryByMobile(mobile);
+        User loginUser = userService.queryByMobile(mobile);
         //查询是否已有账户绑定该WX
-        UserInfo userInfo = userInfoService.queryByWeChatOpenId(openid);
+        User user = userService.queryByWeChatOpenId(openid);
         //未登录
         if (loginUser == null) {
             //未登录,未绑定
-            if (userInfo == null) {
+            if (user == null) {
                 return new RestResponseBean(ResultEnum.WX_UNBOUND_OPENID.getValue(), ResultEnum.WX_UNBOUND_OPENID.getDesc(), null);
             }
             //未登录,已绑定,返回登录信息token等
-            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userInfo));
+            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
         }
         //已登录,未绑定
-        if (userInfo == null) {
+        if (user == null) {
             //绑定微信
             loginUser.setWxId(openid);
-            if (userInfoService.updateById(loginUser)) {
+            if (userService.updateById(loginUser)) {
                 return new RestResponseBean(ResultEnum.WX_BINDING_SUCCESS.getValue(), ResultEnum.WX_BINDING_SUCCESS.getDesc(), null);
             }
             //绑定失败
@@ -570,7 +569,7 @@ public class RestUserInfoController {
         try {
 
 
-            response.sendRedirect(userInfoService.getQQURL(request));
+            response.sendRedirect(userService.getQQURL(request));
 
 
         } catch (Exception e) {
@@ -600,7 +599,7 @@ public class RestUserInfoController {
         long tokenExpireIn = 0L;
 
 
-        UserInfo user1 = userInfoService.queryByMobile(state);
+        User user1 = userService.queryByMobile(state);
 
         String queryString = ((HttpServletRequest) request).getQueryString();
         try {
@@ -618,26 +617,26 @@ public class RestUserInfoController {
                 OpenID openIDObj = new OpenID(accessToken);
                 openID = openIDObj.getUserOpenID();
 
-                UserInfo userInfo = userInfoService.queryByQQOpenId(openID);
+                User user = userService.queryByQQOpenId(openID);
 
                 //判断是否已经登录
                 if (user1 != null) {
                     /**
                      * 判断是否已经绑定
                      */
-                    if (userInfo != null) {
+                    if (user != null) {
                         return new RestResponseBean(ResultEnum.QQ_REPEATED_BINDING.getValue(), ResultEnum.QQ_REPEATED_BINDING.getDesc(), null);
                     }
-                    RestResponseBean RestResponseBean = userInfoService.qqBinding(openID, userInfo);
+                    RestResponseBean RestResponseBean = userService.qqBinding(openID, user);
                     return RestResponseBean;
                 }
 
                 request.getSession().setAttribute("demo_openid", openID);
 
-                if (userInfo == null) {
+                if (user == null) {
                     return new RestResponseBean(ResultEnum.QQ_UNBOUND_OPENID.getValue(), ResultEnum.QQ_UNBOUND_OPENID.getDesc(), null);
                 }
-                this.tokenBuild(userInfo);
+                this.tokenBuild(user);
 
             }
         } catch (QQConnectException e) {
@@ -653,22 +652,22 @@ public class RestUserInfoController {
     /**
      * 公共方法,作用于:账号密码登录,手机验证码登录,三方登录
      *
-     * @param userInfo 根据传参查询到的实体
+     * @param user 根据传参查询到的实体
      * @return
      */
-    private JSONObject tokenBuild(UserInfo userInfo) {
+    private JSONObject tokenBuild(User user) {
 
         JSONObject obj = new JSONObject();
         //生成token
-        String token = JwtUtil.sign(CommonConstant.SIGN_MEMBER_USER + userInfo.getUsername(), userInfo.getPassword());
+        String token = JwtUtil.sign(CommonConstant.SIGN_MEMBER_USER + user.getUsername(), user.getPassword());
         redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, token);
         //设置超时时间
         redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
 
         obj.put("token", token);
-        obj.put("userInfo", userInfo);
+        obj.put("user", user);
 
-        sysBaseAPI.addLog("用户名: " + userInfo.getUsername() + ",登录成功！", CommonConstant.LOG_TYPE_1, null);
+        sysBaseAPI.addLog("用户名: " + user.getUsername() + ",登录成功！", CommonConstant.LOG_TYPE_1, null);
 
         return obj;
     }

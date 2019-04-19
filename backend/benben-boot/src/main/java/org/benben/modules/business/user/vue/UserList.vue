@@ -103,23 +103,23 @@
     <!-- table区域-end -->
 
     <!-- 表单区域 -->
-    <userInfo-modal ref="modalForm" @ok="modalFormOk"></userInfo-modal>
+    <user-modal ref="modalForm" @ok="modalFormOk"></user-modal>
   </a-card>
 </template>
 
 <script>
-  import UserInfoModal from './modules/UserInfoModal'
+  import UserModal from './modules/UserModal'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
 
   export default {
-    name: "UserInfoList",
+    name: "UserList",
     mixins:[JeecgListMixin],
     components: {
-      UserInfoModal
+      UserModal
     },
     data () {
       return {
-        description: '会员表管理页面',
+        description: '普通用户管理页面',
         // 表头
         columns: [
           {
@@ -183,7 +183,7 @@
             dataIndex: 'level'
            },
 		   {
-            title: '性别（1：男 2：女）',
+            title: '性别  0/男,1/女',
             align:"center",
             dataIndex: 'sex'
            },
@@ -273,11 +273,6 @@
             dataIndex: 'userId'
            },
 		   {
-            title: '创建时间整数类型',
-            align:"center",
-            dataIndex: 'createtime'
-           },
-		   {
             title: 'expiretime',
             align:"center",
             dataIndex: 'expiretime'
@@ -305,11 +300,11 @@
           }
         ],
 		url: {
-          list: "/userinfo/userInfo/list",
-          delete: "/userinfo/userInfo/delete",
-          deleteBatch: "/userinfo/userInfo/deleteBatch",
-          exportXlsUrl: "userinfo/userInfo/exportXls",
-          importExcelUrl: "userinfo/userInfo/importExcel",
+          list: "/user/user/list",
+          delete: "/user/user/delete",
+          deleteBatch: "/user/user/deleteBatch",
+          exportXlsUrl: "user/user/exportXls",
+          importExcelUrl: "user/user/importExcel",
        },
     }
   },

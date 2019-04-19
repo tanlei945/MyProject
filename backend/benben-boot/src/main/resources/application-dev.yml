@@ -15,8 +15,8 @@ management:
 spring:
   mail:
     host: smtp.163.com
-    username: jeecgos@163.com
-    password: ??
+    username: sanshixuxian@163.com
+    password: a75861943
     properties:
       mail: 
         smtp: 
@@ -84,7 +84,7 @@ spring:
         connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
       datasource:
         master:
-          url: jdbc:mysql://127.0.0.1:3306/jeecg-bootv1.1?characterEncoding=UTF-8&useUnicode=true&useSSL=false
+          url: jdbc:mysql://127.0.0.1:3306/benben-boot?characterEncoding=UTF-8&useUnicode=true&useSSL=false
           username: root
           password: root
           driver-class-name: com.mysql.jdbc.Driver
@@ -118,3 +118,15 @@ benben :
     upload: D://upFiles
     #webapp文件路径
     webapp: D://webapp
+
+#短信
+sms-configure:
+  host: http://yzxtz.market.alicloudapi.com/yzx/notifySms
+  appcode: 84892d9b92974a88a2a40aed0dcf0773
+
+#微信
+weiXin:
+  appId: wx4efe77aac1e735c6
+  appSecret: 5c5de6885810fc002a351c8654809ed6
+  token: cloudtop
+  backUrl: http://iqci3m.natappfree.cc/jeecg-boot/api/user/callBack

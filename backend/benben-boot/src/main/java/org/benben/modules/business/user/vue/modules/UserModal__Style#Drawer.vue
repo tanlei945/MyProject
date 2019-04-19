@@ -1,13 +1,13 @@
 <template>
-  <a-modal
-    :title="title"
-    :width="800"
-    :visible="visible"
-    :confirmLoading="confirmLoading"
-    @ok="handleOk"
-    @cancel="handleCancel"
-    cancelText="关闭">
-    
+  <a-drawer
+      :title="title"
+      :width="800"
+      placement="right"
+      :closable="false"
+      @close="close"
+      :visible="visible"
+  >
+
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
       
@@ -74,8 +74,8 @@
         <a-form-item
           :labelCol="labelCol"
           :wrapperCol="wrapperCol"
-          label="性别（1：男 2：女）">
-          <a-input placeholder="请输入性别（1：男 2：女）" v-decorator="['sex', validatorRules.sex ]" />
+          label="性别  0/男,1/女">
+          <a-input placeholder="请输入性别  0/男,1/女" v-decorator="['sex', validatorRules.sex ]" />
         </a-form-item>
         <a-form-item
           :labelCol="labelCol"
@@ -182,12 +182,6 @@
         <a-form-item
           :labelCol="labelCol"
           :wrapperCol="wrapperCol"
-          label="创建时间整数类型">
-          <a-input-number v-decorator="[ 'createtime', {}]" />
-        </a-form-item>
-        <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
           label="expiretime">
           <a-input-number v-decorator="[ 'expiretime', {}]" />
         </a-form-item>
@@ -212,7 +206,9 @@
 		
       </a-form>
     </a-spin>
-  </a-modal>
+    <a-button type="primary" @click="handleOk">确定</a-button>
+    <a-button type="primary" @click="handleCancel">取消</a-button>
+  </a-drawer>
 </template>
 
 <script>
@@ -221,7 +217,7 @@
   import moment from "moment"
 
   export default {
-    name: "UserInfoModal",
+    name: "UserModal",
     data () {
       return {
         title:"操作",
@@ -249,7 +245,7 @@
         mobile:{rules: [{ required: true, message: '请输入手机号!' }]},
         avatar:{rules: [{ required: true, message: '请输入头像!' }]},
         level:{rules: [{ required: true, message: '请输入等级!' }]},
-        sex:{rules: [{ required: true, message: '请输入性别（1：男 2：女）!' }]},
+        sex:{rules: [{ required: true, message: '请输入性别  0/男,1/女!' }]},
         bio:{rules: [{ required: true, message: '请输入格言!' }]},
         money:{rules: [{ required: true, message: '请输入余额!' }]},
         score:{rules: [{ required: true, message: '请输入积分!' }]},
@@ -267,8 +263,8 @@
         userId:{rules: [{ required: true, message: '请输入userId!' }]},
         },
         url: {
-          add: "/userinfo/userInfo/add",
-          edit: "/userinfo/userInfo/edit",
+          add: "/user/user/add",
+          edit: "/user/user/edit",
         },
       }
     },
@@ -283,7 +279,7 @@
         this.model = Object.assign({}, record);
         this.visible = true;
         this.$nextTick(() => {
-          this.form.setFieldsValue(pick(this.model,'groupId','username','realname','nickname','password','salt','email','mobile','avatar','level','sex','bio','money','score','successIons','maxsuccessIons','prevTime','loginTime','loginip','loginfailure','joinip','token','status','delFlag','verification','userId','createtime','expiretime','expiresIn','qqId','wxId'))
+          this.form.setFieldsValue(pick(this.model,'groupId','username','realname','nickname','password','salt','email','mobile','avatar','level','sex','bio','money','score','successIons','maxsuccessIons','prevTime','loginTime','loginip','loginfailure','joinip','token','status','delFlag','verification','userId','expiretime','expiresIn','qqId','wxId'))
 		  //时间格式化
           this.form.setFieldsValue({birthday:this.model.birthday?moment(this.model.birthday):null})
           this.form.setFieldsValue({joinTime:this.model.joinTime?moment(this.model.joinTime):null})
@@ -341,6 +337,11 @@
   }
 </script>
 
-<style scoped>
-
+<style lang="less" scoped>
+/** Button按钮间距 */
+  .ant-btn {
+    margin-left: 30px;
+    margin-bottom: 30px;
+    float: right;
+  }
 </style>
