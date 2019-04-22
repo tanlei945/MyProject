@@ -23,12 +23,12 @@ import java.io.InputStream;
  */
 @RestController
 @RequestMapping("/api/common/")
-@Api(tags = "通用接口")
+@Api(tags = {"通用接口"})
 public class RestCommonController {
 
 
     @PostMapping("/upload")
-    @ApiOperation(value = "上传文件",tags = "通用接口", notes = "上传文件")
+    @ApiOperation(value = "上传文件",tags = {"通用接口"}, notes = "上传文件")
     public RestResponseBean upload(@RequestParam(value = "file") MultipartFile[] files) {
 
         String result = "";
@@ -51,7 +51,7 @@ public class RestCommonController {
      * @throws Exception
      */
     @PostMapping(value = "/imageUpload")
-    @ApiOperation(value = "上传图片",tags = "通用接口", notes = "上传图片")
+    @ApiOperation(value = "上传图片",tags = {"通用接口"}, notes = "上传图片")
     public Result<Object> imageUpload(@RequestParam(value = "file") MultipartFile[] files) throws Exception{
         Result<Object> result = new Result<Object>();
 
@@ -69,7 +69,7 @@ public class RestCommonController {
      * @return
      */
     @PostMapping(value = "/fileUpload")
-    @ApiOperation(value = "上传视频",tags = "通用接口", notes = "上传视频")
+    @ApiOperation(value = "上传视频",tags = {"通用接口"}, notes = "上传视频")
     public Result<Object> fileUpload(@RequestParam(value = "file") MultipartFile file) throws IOException {
         Result<Object> result = new Result<Object>();
 

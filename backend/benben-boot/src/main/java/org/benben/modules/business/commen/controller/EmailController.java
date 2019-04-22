@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/api/ems")
-@Api(tags = "邮箱验证码接口")
+@Api(tags = {"邮箱验证码接口"})
 public class EmailController {
 
     @Autowired
     private IEmailServe emailServe;
 
     @GetMapping("/send")
-    @ApiOperation(value = "发送验证码",tags = "邮箱验证码接口",notes = "发送验证码")
+    @ApiOperation(value = "发送验证码",tags = {"邮箱验证码接口"},notes = "发送验证码")
     public RestResponseBean offerCaptcha(@RequestParam(name = "email")String email, @RequestParam(name = "event")String event) {
         Boolean aBoolean = emailServe.offerCaptcha(email,event);
         if(aBoolean){

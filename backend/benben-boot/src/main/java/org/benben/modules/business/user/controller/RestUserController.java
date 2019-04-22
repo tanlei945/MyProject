@@ -41,8 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -54,8 +52,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/user")
+@Api(tags = {"会员接口"})
 @Slf4j
-@Api(tags = "会员接口")
 public class RestUserController {
     @Autowired
     private IUserService userService;
@@ -77,7 +75,7 @@ public class RestUserController {
 
 
     @PostMapping(value = "/login")
-    @ApiOperation(value = "会员登录接口", tags = "会员接口", notes = "会员登录接口")
+    @ApiOperation(value = "会员登录接口", tags = {"会员接口"}, notes = "会员登录接口")
     public RestResponseBean login(@RequestParam("username") String username, @RequestParam("password") String password) {
 
         JSONObject obj = new JSONObject();
@@ -112,7 +110,7 @@ public class RestUserController {
      */
 
     @GetMapping(value = "/list")
-    @ApiOperation(value = "会员列表", tags = "会员接口", notes = "会员列表")
+    @ApiOperation(value = "会员列表", tags = {"会员接口"}, notes = "会员列表")
     public Result<IPage<User>> queryPageList(User user,
                                              @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                              @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
@@ -147,7 +145,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/delete")
-    @ApiOperation(value = "会员删除", tags = "会员接口", notes = "会员删除")
+    @ApiOperation(value = "会员删除", tags = {"会员接口"}, notes = "会员删除")
     public Result<User> delete(@RequestParam(name = "id", required = true) String id) {
         Result<User> result = new Result<User>();
         User user = userService.getById(id);
@@ -171,7 +169,7 @@ public class RestUserController {
      * @return
      */
     @GetMapping(value = "/queryById")
-    @ApiOperation(value = "通过id查询会员", tags = "会员接口", notes = "通过id查询会员")
+    @ApiOperation(value = "通过id查询会员", tags = {"会员接口"}, notes = "通过id查询会员")
     public Result<User> queryById(@RequestParam(name = "id", required = true) String id) {
         Result<User> result = new Result<User>();
 
@@ -192,7 +190,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/register")
-    @ApiOperation(value = "会员注册", tags = "会员接口", notes = "会员注册")
+    @ApiOperation(value = "会员注册", tags = {"会员接口"}, notes = "会员注册")
     public RestResponseBean register(User user) {
         RestResponseBean RestResponseBean = new RestResponseBean();
 
@@ -225,7 +223,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/profile")
-    @ApiOperation(value = "会员修改", tags = "会员接口", notes = "会员修改")
+    @ApiOperation(value = "会员修改", tags = {"会员接口"}, notes = "会员修改")
     public RestResponseBean profile(User user) {
         RestResponseBean RestResponseBean = new RestResponseBean();
 
@@ -268,7 +266,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeEmail")
-    @ApiOperation(value = "修改邮箱", tags = "会员接口", notes = "修改邮箱")
+    @ApiOperation(value = "修改邮箱", tags = {"会员接口"}, notes = "修改邮箱")
     public Result<User> changeEmail(@RequestParam String email, @RequestParam String captcha) {
         Result<User> result = new Result<User>();
         RestResponseBean RestResponseBean = new RestResponseBean();
@@ -299,7 +297,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeMobile")
-    @ApiOperation(value = "修改手机号", tags = "会员接口", notes = "修改手机号")
+    @ApiOperation(value = "修改手机号", tags = {"会员接口"}, notes = "修改手机号")
     public Result<User> changeMobile(@RequestParam String mobile, @RequestParam String captcha) {
         Result<User> result = new Result<User>();
 
@@ -329,7 +327,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeResetpwd")
-    @ApiOperation(value = "修改密码", tags = "会员接口", notes = "修改密码")
+    @ApiOperation(value = "修改密码", tags = {"会员接口"}, notes = "修改密码")
     public Result<User> changeResetpwd(@RequestParam String mobile, @RequestParam String captcha, @RequestParam String newpassword) {
         Result<User> result = new Result<User>();
 
@@ -371,7 +369,7 @@ public class RestUserController {
      * @return
      */
     @GetMapping("/logOut")
-    @ApiOperation(value = "退出", tags = "会员接口", notes = "退出")
+    @ApiOperation(value = "退出", tags = {"会员接口"}, notes = "退出")
     public Result<User> logOut() {
         Result<User> result = new Result<User>();
         User user = (User) SecurityUtils.getSubject().getPrincipal();
@@ -405,7 +403,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/mobilelogin")
-    @ApiOperation(value = "手机验证码登录", tags = "会员接口", notes = "手机验证码登录")
+    @ApiOperation(value = "手机验证码登录", tags = {"会员接口"}, notes = "手机验证码登录")
     public RestResponseBean mobilelogin(@Valid SmsDTO smsDTO, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -434,7 +432,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/wxLogin")
-    @ApiOperation(value = "微信登录", tags = "会员接口", notes = "微信登录")
+    @ApiOperation(value = "微信登录", tags = {"会员接口"}, notes = "微信登录")
     public void wxLogin(HttpServletResponse response, HttpServletRequest request) {
 
         iWxService.wxLogin(response, request);
@@ -499,7 +497,7 @@ public class RestUserController {
      * @throws QQConnectException
      */
     @PostMapping("/locaQQLogin")
-    @ApiOperation(value = "qq登录", tags = "会员接口", notes = "qq登录")
+    @ApiOperation(value = "qq登录", tags = {"会员接口"}, notes = "qq登录")
     public void locaQQLogin(HttpServletRequest request, HttpServletResponse response) throws QQConnectException {
         //生成授权连接
         response.setContentType("text/html;charset=utf-8");
