@@ -1,8 +1,9 @@
 package org.benben.config;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.URL;
+import java.util.*;
 import javax.servlet.Filter;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
@@ -14,9 +15,11 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.benben.modules.shiro.authc.MyRealm;
 import org.benben.modules.shiro.authc.aop.JwtFilter;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author: Scott
@@ -26,6 +29,9 @@ import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class ShiroConfig {
+
+	@Value("${weiXin.appId}")
+	private String appId;
 	
 	/**
 	 * Filter Chain定义说明 
@@ -77,7 +83,20 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/api/user/callBack", "anon");
 		filterChainDefinitionMap.put("/locaQQLogin", "anon");
 		filterChainDefinitionMap.put("/qqLoginCallback", "anon");
-        
+		//从配置文件读取添加不需要token的路径
+		Yaml yaml = new Yaml();
+		URL url = ShiroConfig.class.getClassLoader().getResource("NotokenLogin.yml");
+		Map map = null;
+		try {
+			map = yaml.load(new FileInputStream(url.getFile()));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		if(map!=null){
+			List<String> filterlist = (List)map.get("filterlist");
+			filterlist.forEach(value->filterChainDefinitionMap.put(value,"anon"));
+		}
+
 		// 添加自己的过滤器并且取名为jwt
 		Map<String, Filter> filterMap = new HashMap<String, Filter>(1);
 		filterMap.put("jwt", new JwtFilter());

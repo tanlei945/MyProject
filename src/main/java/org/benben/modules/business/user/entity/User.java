@@ -13,14 +13,14 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 /**
  * @Description: 普通用户
  * @author： jeecg-boot
- * @date：   2019-04-19
+ * @date：   2019-04-20
  * @version： V1.0
  */
 @Data
 @TableName("user")
 public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+	private static final long serialVersionUID = 1L;
+
 	/**ID*/
 	@TableId(type = IdType.UUID)
 	private java.lang.String id;
@@ -42,6 +42,9 @@ public class User implements Serializable {
 	/**密码盐*/
 	@Excel(name = "密码盐", width = 15)
 	private java.lang.String salt;
+	/**用户类型  0/普通用户,1/骑手*/
+	@Excel(name = "用户类型  0/普通用户,1/骑手", width = 15)
+	private java.lang.String type;
 	/**电子邮箱*/
 	@Excel(name = "电子邮箱", width = 15)
 	private java.lang.String email;
@@ -60,7 +63,7 @@ public class User implements Serializable {
 	/**生日*/
 	@Excel(name = "生日", width = 20, format = "yyyy-MM-dd HH:mm:ss")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	private java.util.Date birthday;
 	/**格言*/
 	@Excel(name = "格言", width = 15)
@@ -95,12 +98,12 @@ public class User implements Serializable {
 	/**加入时间*/
 	@Excel(name = "加入时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	private java.util.Date joinTime;
 	/**创建时间*/
 	@Excel(name = "创建时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	private java.util.Date createTime;
 	/**创建人*/
 	@Excel(name = "创建人", width = 15)
@@ -108,36 +111,18 @@ public class User implements Serializable {
 	/**更新时间*/
 	@Excel(name = "更新时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	private java.util.Date updateTime;
 	/**编辑人*/
 	@Excel(name = "编辑人", width = 15)
 	private java.lang.String updateBy;
-	/**Token*/
-	@Excel(name = "Token", width = 15)
-	private java.lang.String token;
 	/**状态(1：正常  2：冻结 ）*/
 	@Excel(name = "状态(1：正常  2：冻结 ）", width = 15)
 	private java.lang.Integer status;
-	/**删除状态（0，正常，1已删除）*/
-	@Excel(name = "删除状态（0，正常，1已删除）", width = 15)
+	/**删除状态  0/正常,1/已删除*/
+	@Excel(name = "删除状态  0/正常,1/已删除", width = 15)
 	private java.lang.String delFlag;
-	/**验证*/
-	@Excel(name = "验证", width = 15)
-	private java.lang.String verification;
-	/**userId*/
-	@Excel(name = "userId", width = 15)
-	private java.lang.String userId;
-	/**expiretime*/
-	@Excel(name = "expiretime", width = 15)
-	private java.lang.Integer expiretime;
-	/**expiresIn*/
-	@Excel(name = "expiresIn", width = 15)
-	private java.lang.Integer expiresIn;
-	/**qqId*/
-	@Excel(name = "qqId", width = 15)
-	private java.lang.String qqId;
-	/**wxId*/
-	@Excel(name = "wxId", width = 15)
-	private java.lang.String wxId;
+	/**邀请人*/
+	@Excel(name = "邀请人", width = 15)
+	private java.lang.String inviterId;
 }
