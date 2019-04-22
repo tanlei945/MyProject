@@ -27,7 +27,9 @@ import org.benben.modules.business.commen.dto.SmsDTO;
 import org.benben.modules.business.commen.service.ISMSService;
 import org.benben.modules.business.commen.service.IWxService;
 import org.benben.modules.business.user.entity.User;
+import org.benben.modules.business.user.entity.UserThird;
 import org.benben.modules.business.user.service.IUserService;
+import org.benben.modules.business.user.service.IUserThirdService;
 import org.benben.modules.shiro.authc.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -57,6 +59,9 @@ import java.util.Map;
 public class RestUserController {
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private IUserThirdService userThirdService;
 
     @Autowired
     private ISysBaseAPI sysBaseAPI;
@@ -136,59 +141,6 @@ public class RestUserController {
     }
 
     /**
-     * 添加
-     *
-     * @param user
-     * @return
-     */
-    @PostMapping(value = "/add")
-    @ApiOperation(value = "会员添加", tags = "会员接口", notes = "会员添加")
-    public Result<User> add(@RequestBody User user) {
-        Result<User> result = new Result<User>();
-
-        try {
-            user.setCreateTime(new Date());//设置创建时间
-            String salt = oConvertUtils.randomGen(8);
-            user.setSalt(salt);
-            String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
-            user.setPassword(passwordEncode);
-            userService.save(user);
-            result.success("添加成功！");
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info(e.getMessage());
-            result.error500("操作失败");
-        }
-
-        return result;
-    }
-
-    /**
-     * 编辑
-     *
-     * @param user
-     * @return
-     */
-    @PostMapping(value = "/edit")
-    @ApiOperation(value = "会员编辑", tags = "会员接口", notes = "会员编辑")
-    public Result<User> eidt(@RequestBody User user) {
-        Result<User> result = new Result<User>();
-
-        User userEntity = userService.getById(user.getId());
-        if (userEntity == null) {
-            result.error500("未找到对应实体");
-        } else {
-            boolean ok = userService.updateById(user);
-            //TODO 返回false说明什么？
-            if (ok) {
-                result.success("修改成功!");
-            }
-        }
-
-        return result;
-    }
-
-    /**
      * 通过id删除
      *
      * @param id
@@ -209,26 +161,6 @@ public class RestUserController {
             }
         }
 
-        return result;
-    }
-
-    /**
-     * 批量删除
-     *
-     * @param ids
-     * @return
-     */
-    @PostMapping(value = "/deleteBatch")
-    @ApiOperation(value = "批量删除", tags = "会员接口", notes = "批量删除")
-    public Result<User> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
-        Result<User> result = new Result<User>();
-
-        if (ids == null || "".equals(ids.trim())) {
-            result.error500("参数不识别！");
-        } else {
-            this.userService.removeByIds(Arrays.asList(ids.split(",")));
-            result.success("删除成功!");
-        }
         return result;
     }
 
@@ -321,7 +253,6 @@ public class RestUserController {
      * @return
      */
     @GetMapping(value = "/queryByName")
-    @ApiOperation(value = "根据姓名查找", tags = "会员接口", notes = "根据姓名查找")
     public User queryByName(@RequestParam String username) {
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.eq("username", username);
@@ -520,6 +451,8 @@ public class RestUserController {
      */
     @GetMapping(value = "/callBack")
     public RestResponseBean callBack(HttpServletRequest request) {
+
+        User userEntity = null;
         //获取回调map
         Map<String, String> map = iWxService.callBack(request);
         String openid = map.get("openid");
@@ -529,23 +462,26 @@ public class RestUserController {
             return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
         }
         //查询登录状态
-        User loginUser = userService.queryByMobile(mobile);
+        User user = userService.queryByMobile(mobile);
         //查询是否已有账户绑定该WX
-        User user = userService.queryByWeChatOpenId(openid);
+        UserThird userThird = userThirdService.queryByOpenid(openid);
+        if(userThird != null){
+            //查询绑定的用户信息
+            userEntity = userService.getById(userThird.getUserId());
+        }
         //未登录
-        if (loginUser == null) {
+        if (user == null) {
             //未登录,未绑定
-            if (user == null) {
+            if (userEntity == null) {
                 return new RestResponseBean(ResultEnum.WX_UNBOUND_OPENID.getValue(), ResultEnum.WX_UNBOUND_OPENID.getDesc(), null);
             }
             //未登录,已绑定,返回登录信息token等
-            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
+            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userEntity));
         }
         //已登录,未绑定
-        if (user == null) {
+        if (userEntity == null) {
             //绑定微信
-            loginUser.setWxId(openid);
-            if (userService.updateById(loginUser)) {
+            if (userService.bindingThird(openid,user.getId(),"1") == 1) {
                 return new RestResponseBean(ResultEnum.WX_BINDING_SUCCESS.getValue(), ResultEnum.WX_BINDING_SUCCESS.getDesc(), null);
             }
             //绑定失败
@@ -570,9 +506,7 @@ public class RestUserController {
 
         try {
 
-
             response.sendRedirect(userService.getQQURL(request));
-
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -593,19 +527,20 @@ public class RestUserController {
     @GetMapping("/qqLoginCallback")
     public RestResponseBean qqLoginCallback(HttpServletRequest request, HttpSession httpSession, HttpServletResponse response) throws QQConnectException {
 
+        User userEntity = null;
+
         response.setContentType("text/html;charset=utf-8");
-        String state = request.getParameter("state");
+        String mobile = request.getParameter("state");
 
         String accessToken = null;
         String openID = null;
         long tokenExpireIn = 0L;
 
-
-        User user1 = userService.queryByMobile(state);
+        User user = userService.queryByMobile(mobile);
 
         String queryString = ((HttpServletRequest) request).getQueryString();
         try {
-            AccessToken accessTokenObj = (new Oauth().getAccessTokenByQueryString(queryString, state));
+            AccessToken accessTokenObj = (new Oauth().getAccessTokenByQueryString(queryString, mobile));
             if (accessTokenObj.getAccessToken().equals("")) {
                 System.out.println("没有获取到响应参数");
                 return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
@@ -618,27 +553,30 @@ public class RestUserController {
                 // 利用获取到的accessToken 去获取当前用的openid -------- start
                 OpenID openIDObj = new OpenID(accessToken);
                 openID = openIDObj.getUserOpenID();
-
-                User user = userService.queryByQQOpenId(openID);
+                //查询是否已有账户绑定该QQ
+                UserThird userThird = userThirdService.queryByOpenid(openID);
+                if(userThird != null){
+                    //查询绑定的用户信息
+                    userEntity = userService.getById(userThird.getUserId());
+                }
 
                 //判断是否已经登录
-                if (user1 != null) {
-                    /**
-                     * 判断是否已经绑定
-                     */
-                    if (user != null) {
+                if (user != null) {
+                    //判断是否已经绑定
+                    if (userThird != null) {
                         return new RestResponseBean(ResultEnum.QQ_REPEATED_BINDING.getValue(), ResultEnum.QQ_REPEATED_BINDING.getDesc(), null);
                     }
-                    RestResponseBean RestResponseBean = userService.qqBinding(openID, user);
-                    return RestResponseBean;
+                    //绑定QQ
+                    if( userService.bindingThird(openID,userEntity.getId(),"0") == 1){
+                        return new RestResponseBean(ResultEnum.QQ_BINDING_SUCCESS.getValue(),ResultEnum.QQ_BINDING_SUCCESS.getDesc(),null);
+                    }
+                    return new RestResponseBean(ResultEnum.QQ_BINDING_FAIL.getValue(),ResultEnum.QQ_BINDING_FAIL.getDesc(),null);
                 }
 
-                request.getSession().setAttribute("demo_openid", openID);
-
-                if (user == null) {
+                if (userThird == null) {
                     return new RestResponseBean(ResultEnum.QQ_UNBOUND_OPENID.getValue(), ResultEnum.QQ_UNBOUND_OPENID.getDesc(), null);
                 }
-                this.tokenBuild(user);
+                this.tokenBuild(userEntity);
 
             }
         } catch (QQConnectException e) {

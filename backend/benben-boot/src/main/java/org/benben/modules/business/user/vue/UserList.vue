@@ -16,23 +16,23 @@
               <a-input placeholder="请输入用户名" v-model="queryParam.username"></a-input>
             </a-form-item>
           </a-col>
-        <template v-if="toggleSearchStatus">
-        <a-col :md="6" :sm="8">
-            <a-form-item label="真实姓名">
-              <a-input placeholder="请输入真实姓名" v-model="queryParam.realname"></a-input>
-            </a-form-item>
-          </a-col>
-          <a-col :md="6" :sm="8">
-            <a-form-item label="昵称">
-              <a-input placeholder="请输入昵称" v-model="queryParam.nickname"></a-input>
-            </a-form-item>
-          </a-col>
-          <a-col :md="6" :sm="8">
-            <a-form-item label="密码">
-              <a-input placeholder="请输入密码" v-model="queryParam.password"></a-input>
-            </a-form-item>
-          </a-col>
-        </template>
+          <template v-if="toggleSearchStatus">
+            <a-col :md="6" :sm="8">
+              <a-form-item label="真实姓名">
+                <a-input placeholder="请输入真实姓名" v-model="queryParam.realname"></a-input>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="8">
+              <a-form-item label="昵称">
+                <a-input placeholder="请输入昵称" v-model="queryParam.nickname"></a-input>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="8">
+              <a-form-item label="密码">
+                <a-input placeholder="请输入密码" v-model="queryParam.password"></a-input>
+              </a-form-item>
+            </a-col>
+          </template>
           <a-col :md="6" :sm="8" >
             <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
               <a-button type="primary" @click="searchQuery" icon="search">查询</a-button>
@@ -71,16 +71,16 @@
       </div>
 
       <a-table
-        ref="table"
-        size="middle"
-        bordered
-        rowKey="id"
-        :columns="columns"
-        :dataSource="dataSource"
-        :pagination="ipagination"
-        :loading="loading"
-        :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-        @change="handleTableChange">
+              ref="table"
+              size="middle"
+              bordered
+              rowKey="id"
+              :columns="columns"
+              :dataSource="dataSource"
+              :pagination="ipagination"
+              :loading="loading"
+              :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+              @change="handleTableChange">
 
         <span slot="action" slot-scope="text, record">
           <a @click="handleEdit(record)">编辑</a>
@@ -131,167 +131,142 @@
             customRender:function (t,r,index) {
               return parseInt(index)+1;
             }
-           },
-		   {
+          },
+          {
             title: '组别ID',
             align:"center",
             dataIndex: 'groupId'
-           },
-		   {
+          },
+          {
             title: '用户名',
             align:"center",
             dataIndex: 'username'
-           },
-		   {
+          },
+          {
             title: '真实姓名',
             align:"center",
             dataIndex: 'realname'
-           },
-		   {
+          },
+          {
             title: '昵称',
             align:"center",
             dataIndex: 'nickname'
-           },
-		   {
+          },
+          {
             title: '密码',
             align:"center",
             dataIndex: 'password'
-           },
-		   {
+          },
+          {
             title: '密码盐',
             align:"center",
             dataIndex: 'salt'
-           },
-		   {
+          },
+          {
+            title: '用户类型  0/普通用户,1/骑手',
+            align:"center",
+            dataIndex: 'type'
+          },
+          {
             title: '电子邮箱',
             align:"center",
             dataIndex: 'email'
-           },
-		   {
+          },
+          {
             title: '手机号',
             align:"center",
             dataIndex: 'mobile'
-           },
-		   {
+          },
+          {
             title: '头像',
             align:"center",
             dataIndex: 'avatar'
-           },
-		   {
+          },
+          {
             title: '等级',
             align:"center",
             dataIndex: 'level'
-           },
-		   {
+          },
+          {
             title: '性别  0/男,1/女',
             align:"center",
             dataIndex: 'sex'
-           },
-		   {
+          },
+          {
             title: '生日',
             align:"center",
             dataIndex: 'birthday'
-           },
-		   {
+          },
+          {
             title: '格言',
             align:"center",
             dataIndex: 'bio'
-           },
-		   {
+          },
+          {
             title: '余额',
             align:"center",
             dataIndex: 'money'
-           },
-		   {
+          },
+          {
             title: '积分',
             align:"center",
             dataIndex: 'score'
-           },
-		   {
+          },
+          {
             title: '连续登录天数',
             align:"center",
             dataIndex: 'successIons'
-           },
-		   {
+          },
+          {
             title: '最大连续登录天数',
             align:"center",
             dataIndex: 'maxsuccessIons'
-           },
-		   {
+          },
+          {
             title: '上次登录时间',
             align:"center",
             dataIndex: 'prevTime'
-           },
-		   {
+          },
+          {
             title: '登录时间',
             align:"center",
             dataIndex: 'loginTime'
-           },
-		   {
+          },
+          {
             title: '登录IP',
             align:"center",
             dataIndex: 'loginip'
-           },
-		   {
+          },
+          {
             title: '失败次数',
             align:"center",
             dataIndex: 'loginfailure'
-           },
-		   {
+          },
+          {
             title: '加入IP',
             align:"center",
             dataIndex: 'joinip'
-           },
-		   {
+          },
+          {
             title: '加入时间',
             align:"center",
             dataIndex: 'joinTime'
-           },
-		   {
-            title: 'Token',
-            align:"center",
-            dataIndex: 'token'
-           },
-		   {
+          },
+          {
             title: '状态(1：正常  2：冻结 ）',
             align:"center",
             dataIndex: 'status'
-           },
-		   {
-            title: '删除状态（0，正常，1已删除）',
+          },
+          {
+            title: '删除状态  0/正常,1/已删除',
             align:"center",
             dataIndex: 'delFlag'
-           },
-		   {
-            title: '验证',
+          },
+          {
+            title: '邀请人',
             align:"center",
-            dataIndex: 'verification'
-           },
-		   {
-            title: 'userId',
-            align:"center",
-            dataIndex: 'userId'
-           },
-		   {
-            title: 'expiretime',
-            align:"center",
-            dataIndex: 'expiretime'
-           },
-		   {
-            title: 'expiresIn',
-            align:"center",
-            dataIndex: 'expiresIn'
-           },
-		   {
-            title: 'qqId',
-            align:"center",
-            dataIndex: 'qqId'
-           },
-		   {
-            title: 'wxId',
-            align:"center",
-            dataIndex: 'wxId'
-           },
+            dataIndex: 'inviterId'
+          },
           {
             title: '操作',
             dataIndex: 'action',
@@ -299,27 +274,27 @@
             scopedSlots: { customRender: 'action' },
           }
         ],
-		url: {
-          list: "/user/user/list",
-          delete: "/user/user/delete",
-          deleteBatch: "/user/user/deleteBatch",
-          exportXlsUrl: "user/user/exportXls",
-          importExcelUrl: "user/user/importExcel",
-       },
-    }
-  },
-  computed: {
-    importExcelUrl: function(){
-      return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`;
-    }
-  },
+        url: {
+          list: "/user1/user/list",
+          delete: "/user1/user/delete",
+          deleteBatch: "/user1/user/deleteBatch",
+          exportXlsUrl: "user1/user/exportXls",
+          importExcelUrl: "user1/user/importExcel",
+        },
+      }
+    },
+    computed: {
+      importExcelUrl: function(){
+        return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`;
+      }
+    },
     methods: {
-     
+
     }
   }
 </script>
 <style lang="less" scoped>
-/** Button按钮间距 */
+  /** Button按钮间距 */
   .ant-btn {
     margin-left: 3px
   }

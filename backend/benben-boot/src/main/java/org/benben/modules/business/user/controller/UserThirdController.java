@@ -1,14 +1,23 @@
 package org.benben.modules.business.user.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.benben.common.api.vo.Result;
+import org.benben.common.system.query.QueryGenerator;
+import org.benben.common.util.oConvertUtils;
+import org.benben.modules.business.user.entity.UserThird;
+import org.benben.modules.business.user.service.IUserThirdService;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
@@ -16,53 +25,44 @@ import org.jeecgframework.poi.excel.entity.ExportParams;
 import org.jeecgframework.poi.excel.entity.ImportParams;
 import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
 
-import org.benben.common.api.vo.Result;
-import org.benben.common.system.query.QueryGenerator;
-import org.benben.common.util.oConvertUtils;
-import org.benben.modules.business.user.entity.User;
-import org.benben.modules.business.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.ModelAndView;
 import com.alibaba.fastjson.JSON;
 
  /**
  * @Title: Controller
- * @Description: 普通用户
+ * @Description: 用户三方关联
  * @author： jeecg-boot
  * @date：   2019-04-20
  * @version： V1.0
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/user/userThird")
 @Slf4j
-public class UserController {
+public class UserThirdController {
 	@Autowired
-	private IUserService userService;
+	private IUserThirdService userThirdService;
 	
 	/**
 	  * 分页列表查询
-	 * @param user
+	 * @param userThird
 	 * @param pageNo
 	 * @param pageSize
 	 * @param req
 	 * @return
 	 */
 	@GetMapping(value = "/list")
-	public Result<IPage<User>> queryPageList(User user,
+	public Result<IPage<UserThird>> queryPageList(UserThird userThird,
 									  @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 									  @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 									  HttpServletRequest req) {
-		Result<IPage<User>> result = new Result<IPage<User>>();
-		QueryWrapper<User> queryWrapper = QueryGenerator.initQueryWrapper(user, req.getParameterMap());
-		Page<User> page = new Page<User>(pageNo, pageSize);
-		IPage<User> pageList = userService.page(page, queryWrapper);
+		Result<IPage<UserThird>> result = new Result<IPage<UserThird>>();
+		QueryWrapper<UserThird> queryWrapper = QueryGenerator.initQueryWrapper(userThird, req.getParameterMap());
+		Page<UserThird> page = new Page<UserThird>(pageNo, pageSize);
+		IPage<UserThird> pageList = userThirdService.page(page, queryWrapper);
 		result.setSuccess(true);
 		result.setResult(pageList);
 		return result;
@@ -70,14 +70,14 @@ public class UserController {
 	
 	/**
 	  *   添加
-	 * @param user
+	 * @param userThird
 	 * @return
 	 */
 	@PostMapping(value = "/add")
-	public Result<User> add(@RequestBody User user) {
-		Result<User> result = new Result<User>();
+	public Result<UserThird> add(@RequestBody UserThird userThird) {
+		Result<UserThird> result = new Result<UserThird>();
 		try {
-			userService.save(user);
+			userThirdService.save(userThird);
 			result.success("添加成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -89,17 +89,17 @@ public class UserController {
 	
 	/**
 	  *  编辑
-	 * @param user
+	 * @param userThird
 	 * @return
 	 */
 	@PutMapping(value = "/edit")
-	public Result<User> edit(@RequestBody User user) {
-		Result<User> result = new Result<User>();
-		User userEntity = userService.getById(user.getId());
-		if(userEntity==null) {
+	public Result<UserThird> edit(@RequestBody UserThird userThird) {
+		Result<UserThird> result = new Result<UserThird>();
+		UserThird userThirdEntity = userThirdService.getById(userThird.getId());
+		if(userThirdEntity==null) {
 			result.error500("未找到对应实体");
 		}else {
-			boolean ok = userService.updateById(user);
+			boolean ok = userThirdService.updateById(userThird);
 			//TODO 返回false说明什么？
 			if(ok) {
 				result.success("修改成功!");
@@ -115,14 +115,16 @@ public class UserController {
 	 * @return
 	 */
 	@DeleteMapping(value = "/delete")
-	public Result<User> delete(@RequestParam(name="id",required=true) String id) {
-		Result<User> result = new Result<User>();
-		User user = userService.getById(id);
-		if(user==null) {
+	public Result<UserThird> delete(@RequestParam(name="id",required=true) String id) {
+		Result<UserThird> result = new Result<UserThird>();
+		UserThird userThird = userThirdService.getById(id);
+		if(userThird==null) {
 			result.error500("未找到对应实体");
 		}else {
-			userService.delMain(id);
-			result.success("删除成功!");
+			boolean ok = userThirdService.removeById(id);
+			if(ok) {
+				result.success("删除成功!");
+			}
 		}
 		
 		return result;
@@ -134,12 +136,12 @@ public class UserController {
 	 * @return
 	 */
 	@DeleteMapping(value = "/deleteBatch")
-	public Result<User> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		Result<User> result = new Result<User>();
+	public Result<UserThird> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
+		Result<UserThird> result = new Result<UserThird>();
 		if(ids==null || "".equals(ids.trim())) {
 			result.error500("参数不识别！");
 		}else {
-			this.userService.delBatchMain(Arrays.asList(ids.split(",")));
+			this.userThirdService.removeByIds(Arrays.asList(ids.split(",")));
 			result.success("删除成功!");
 		}
 		return result;
@@ -151,13 +153,13 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping(value = "/queryById")
-	public Result<User> queryById(@RequestParam(name="id",required=true) String id) {
-		Result<User> result = new Result<User>();
-		User user = userService.getById(id);
-		if(user==null) {
+	public Result<UserThird> queryById(@RequestParam(name="id",required=true) String id) {
+		Result<UserThird> result = new Result<UserThird>();
+		UserThird userThird = userThirdService.getById(id);
+		if(userThird==null) {
 			result.error500("未找到对应实体");
 		}else {
-			result.setResult(user);
+			result.setResult(userThird);
 			result.setSuccess(true);
 		}
 		return result;
@@ -172,13 +174,13 @@ public class UserController {
   @RequestMapping(value = "/exportXls")
   public ModelAndView exportXls(HttpServletRequest request, HttpServletResponse response) {
       // Step.1 组装查询条件
-      QueryWrapper<User> queryWrapper = null;
+      QueryWrapper<UserThird> queryWrapper = null;
       try {
           String paramsStr = request.getParameter("paramsStr");
           if (oConvertUtils.isNotEmpty(paramsStr)) {
               String deString = URLDecoder.decode(paramsStr, "UTF-8");
-              User user = JSON.parseObject(deString, User.class);
-              queryWrapper = QueryGenerator.initQueryWrapper(user, request.getParameterMap());
+              UserThird userThird = JSON.parseObject(deString, UserThird.class);
+              queryWrapper = QueryGenerator.initQueryWrapper(userThird, request.getParameterMap());
           }
       } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
@@ -186,11 +188,11 @@ public class UserController {
 
       //Step.2 AutoPoi 导出Excel
       ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
-      List<User> pageList = userService.list(queryWrapper);
+      List<UserThird> pageList = userThirdService.list(queryWrapper);
       //导出文件名称
-      mv.addObject(NormalExcelConstants.FILE_NAME, "普通用户列表");
-      mv.addObject(NormalExcelConstants.CLASS, User.class);
-      mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("普通用户列表数据", "导出人:Jeecg", "导出信息"));
+      mv.addObject(NormalExcelConstants.FILE_NAME, "用户三方关联列表");
+      mv.addObject(NormalExcelConstants.CLASS, UserThird.class);
+      mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("用户三方关联列表数据", "导出人:Jeecg", "导出信息"));
       mv.addObject(NormalExcelConstants.DATA_LIST, pageList);
       return mv;
   }
@@ -213,11 +215,11 @@ public class UserController {
           params.setHeadRows(1);
           params.setNeedSave(true);
           try {
-              List<User> listUsers = ExcelImportUtil.importExcel(file.getInputStream(), User.class, params);
-              for (User userExcel : listUsers) {
-                  userService.save(userExcel);
+              List<UserThird> listUserThirds = ExcelImportUtil.importExcel(file.getInputStream(), UserThird.class, params);
+              for (UserThird userThirdExcel : listUserThirds) {
+                  userThirdService.save(userThirdExcel);
               }
-              return Result.ok("文件导入成功！数据行数：" + listUsers.size());
+              return Result.ok("文件导入成功！数据行数：" + listUserThirds.size());
           } catch (Exception e) {
               log.error(e.getMessage());
               return Result.error("文件导入失败！");
