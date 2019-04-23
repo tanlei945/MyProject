@@ -125,7 +125,7 @@ sms-configure:
   appcode: 84892d9b92974a88a2a40aed0dcf0773
 
 #微信
-weiXin:
+wecat:
   appId: wx4efe77aac1e735c6
   appSecret: 5c5de6885810fc002a351c8654809ed6
   token: cloudtop
