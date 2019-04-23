@@ -16,23 +16,23 @@
               <a-input placeholder="请输入QQ_OpenId" v-model="queryParam.qqOpenid"></a-input>
             </a-form-item>
           </a-col>
-        <template v-if="toggleSearchStatus">
-        <a-col :md="6" :sm="8">
-            <a-form-item label="微信_OpenId">
-              <a-input placeholder="请输入微信_OpenId" v-model="queryParam.wxOpenid"></a-input>
-            </a-form-item>
-          </a-col>
-          <a-col :md="6" :sm="8">
-            <a-form-item label="微博_OpenId">
-              <a-input placeholder="请输入微博_OpenId" v-model="queryParam.wbOpenid"></a-input>
-            </a-form-item>
-          </a-col>
-          <a-col :md="6" :sm="8">
-            <a-form-item label="状态  0/启用,1/未启用,2/已删除">
-              <a-input placeholder="请输入状态  0/启用,1/未启用,2/已删除" v-model="queryParam.status"></a-input>
-            </a-form-item>
-          </a-col>
-        </template>
+          <template v-if="toggleSearchStatus">
+            <a-col :md="6" :sm="8">
+              <a-form-item label="微信_OpenId">
+                <a-input placeholder="请输入微信_OpenId" v-model="queryParam.wxOpenid"></a-input>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="8">
+              <a-form-item label="微博_OpenId">
+                <a-input placeholder="请输入微博_OpenId" v-model="queryParam.wbOpenid"></a-input>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="8">
+              <a-form-item label="状态  0/启用,1/未启用,2/已删除">
+                <a-input placeholder="请输入状态  0/启用,1/未启用,2/已删除" v-model="queryParam.status"></a-input>
+              </a-form-item>
+            </a-col>
+          </template>
           <a-col :md="6" :sm="8" >
             <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
               <a-button type="primary" @click="searchQuery" icon="search">查询</a-button>
@@ -71,16 +71,16 @@
       </div>
 
       <a-table
-        ref="table"
-        size="middle"
-        bordered
-        rowKey="id"
-        :columns="columns"
-        :dataSource="dataSource"
-        :pagination="ipagination"
-        :loading="loading"
-        :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
-        @change="handleTableChange">
+              ref="table"
+              size="middle"
+              bordered
+              rowKey="id"
+              :columns="columns"
+              :dataSource="dataSource"
+              :pagination="ipagination"
+              :loading="loading"
+              :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+              @change="handleTableChange">
 
         <span slot="action" slot-scope="text, record">
           <a @click="handleEdit(record)">编辑</a>
@@ -131,32 +131,32 @@
             customRender:function (t,r,index) {
               return parseInt(index)+1;
             }
-           },
-		   {
+          },
+          {
             title: '用户ID',
             align:"center",
             dataIndex: 'userId'
-           },
-		   {
+          },
+          {
             title: 'QQ_OpenId',
             align:"center",
             dataIndex: 'qqOpenid'
-           },
-		   {
+          },
+          {
             title: '微信_OpenId',
             align:"center",
             dataIndex: 'wxOpenid'
-           },
-		   {
+          },
+          {
             title: '微博_OpenId',
             align:"center",
             dataIndex: 'wbOpenid'
-           },
-		   {
+          },
+          {
             title: '状态  0/启用,1/未启用,2/已删除',
             align:"center",
             dataIndex: 'status'
-           },
+          },
           {
             title: '操作',
             dataIndex: 'action',
@@ -164,27 +164,27 @@
             scopedSlots: { customRender: 'action' },
           }
         ],
-		url: {
+        url: {
           list: "/user/userThird/list",
           delete: "/user/userThird/delete",
           deleteBatch: "/user/userThird/deleteBatch",
           exportXlsUrl: "user/userThird/exportXls",
           importExcelUrl: "user/userThird/importExcel",
-       },
-    }
-  },
-  computed: {
-    importExcelUrl: function(){
-      return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`;
-    }
-  },
+        },
+      }
+    },
+    computed: {
+      importExcelUrl: function(){
+        return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`;
+      }
+    },
     methods: {
-     
+
     }
   }
 </script>
 <style lang="less" scoped>
-/** Button按钮间距 */
+  /** Button按钮间距 */
   .ant-btn {
     margin-left: 3px
   }

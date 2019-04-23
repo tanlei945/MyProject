@@ -13,7 +13,7 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 /**
  * @Description: 普通用户
  * @author： jeecg-boot
- * @date：   2019-04-20
+ * @date：   2019-04-23
  * @version： V1.0
  */
 @Data
@@ -44,7 +44,7 @@ public class User implements Serializable {
 	private java.lang.String salt;
 	/**用户类型  0/普通用户,1/骑手*/
 	@Excel(name = "用户类型  0/普通用户,1/骑手", width = 15)
-	private java.lang.String type;
+	private java.lang.String userType;
 	/**电子邮箱*/
 	@Excel(name = "电子邮箱", width = 15)
 	private java.lang.String email;
@@ -56,7 +56,7 @@ public class User implements Serializable {
 	private java.lang.String avatar;
 	/**等级*/
 	@Excel(name = "等级", width = 15)
-	private java.lang.Integer level;
+	private java.lang.Integer userLevel;
 	/**性别  0/男,1/女*/
 	@Excel(name = "性别  0/男,1/女", width = 15)
 	private java.lang.Integer sex;
@@ -70,7 +70,7 @@ public class User implements Serializable {
 	private java.lang.String bio;
 	/**余额*/
 	@Excel(name = "余额", width = 15)
-	private java.math.BigDecimal money;
+	private java.math.BigDecimal userMoney;
 	/**积分*/
 	@Excel(name = "积分", width = 15)
 	private java.lang.Integer score;
@@ -84,8 +84,10 @@ public class User implements Serializable {
 	@Excel(name = "上次登录时间", width = 15)
 	private java.lang.Integer prevTime;
 	/**登录时间*/
-	@Excel(name = "登录时间", width = 15)
-	private java.lang.Integer loginTime;
+	@Excel(name = "登录时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	private java.util.Date loginTime;
 	/**登录IP*/
 	@Excel(name = "登录IP", width = 15)
 	private java.lang.String loginip;

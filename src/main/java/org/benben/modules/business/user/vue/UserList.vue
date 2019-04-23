@@ -165,7 +165,7 @@
           {
             title: '用户类型  0/普通用户,1/骑手',
             align:"center",
-            dataIndex: 'type'
+            dataIndex: 'userType'
           },
           {
             title: '电子邮箱',
@@ -185,7 +185,7 @@
           {
             title: '等级',
             align:"center",
-            dataIndex: 'level'
+            dataIndex: 'userLevel'
           },
           {
             title: '性别  0/男,1/女',
@@ -205,7 +205,7 @@
           {
             title: '余额',
             align:"center",
-            dataIndex: 'money'
+            dataIndex: 'userMoney'
           },
           {
             title: '积分',
@@ -275,11 +275,11 @@
           }
         ],
         url: {
-          list: "/user1/user/list",
-          delete: "/user1/user/delete",
-          deleteBatch: "/user1/user/deleteBatch",
-          exportXlsUrl: "user1/user/exportXls",
-          importExcelUrl: "user1/user/importExcel",
+          list: "/user/list",
+          delete: "/user/delete",
+          deleteBatch: "/user/deleteBatch",
+          exportXlsUrl: "user/exportXls",
+          importExcelUrl: "user/importExcel",
         },
       }
     },

@@ -8,11 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 @Service
-public class IValidateServiceImpl implements IValidateService {
+public class ValidateServiceImpl implements IValidateService {
 
     @Autowired
     private ValidateMapper validateMapper;
