@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.benben.common.util.PasswordUtil;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -77,6 +78,10 @@ public class UserController {
 	public Result<User> add(@RequestBody User user) {
 		Result<User> result = new Result<User>();
 		try {
+			String salt = oConvertUtils.randomGen(8);
+			user.setSalt(salt);
+			String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
+			user.setPassword(passwordEncode);
 			userService.save(user);
 			result.success("添加成功！");
 		} catch (Exception e) {
