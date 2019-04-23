@@ -41,12 +41,14 @@ public interface IUserService extends IService<User> {
 	 */
 	public void delBatchMain (Collection<? extends Serializable> idList);
 
-	public User getByUsername(String username);
+	public User queryByUsername(String username);
 
 	public User queryByMobile(String moblie);
 
 	public int bindingThird(String openId , String userId, String type);
 
 	public String getQQURL(ServletRequest request) throws QQConnectException;
+
+	public int forgetPassword(String mobile, String password);
 
 }

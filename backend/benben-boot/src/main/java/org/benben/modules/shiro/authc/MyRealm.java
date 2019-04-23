@@ -162,7 +162,7 @@ public class MyRealm extends AuthorizingRealm {
         // 会员用户登录
         if (StringUtils.equals(CommonConstant.SIGN_MEMBER_USER, sign)) {
 
-            userInfo = userService.getByUsername(username);
+            userInfo = userService.queryByUsername(username);
             password = userInfo.getPassword();
             status = userInfo.getStatus();
             if (userInfo == null) {

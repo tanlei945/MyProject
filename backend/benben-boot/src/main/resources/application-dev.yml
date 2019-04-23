@@ -129,7 +129,13 @@ weiXin:
   appId: wx4efe77aac1e735c6
   appSecret: 5c5de6885810fc002a351c8654809ed6
   token: cloudtop
-  backUrl: http://iqci3m.natappfree.cc/jeecg-boot/api/user/callBack
+  backUrl: http://caxgjd.natappfree.cc/benben-boot/api/user/callBack
+
+#微博
+weibo:
+  appId: 1768380590
+  appSecret: 33bf157d02042a50e080101e003d037e
+  backUrl: http://u547cb.natappfree.cc/nckf-boot/api/user/wb_callback
 
 #邮箱
 mail:

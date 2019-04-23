@@ -30,12 +30,9 @@ import org.yaml.snakeyaml.Yaml;
 @Configuration
 public class ShiroConfig {
 
-	@Value("${weiXin.appId}")
-	private String appId;
-	
 	/**
-	 * Filter Chain定义说明 
-	 * 
+	 * Filter Chain定义说明
+	 *
 	 * 1、一个URL可以配置多个Filter，使用逗号分隔
 	 * 2、当设置多个过滤器时，全部验证通过，才视为通过
 	 * 3、部分过滤器可指定参数，如perms，roles
@@ -67,12 +64,12 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/swagger**/**", "anon");
 		filterChainDefinitionMap.put("/webjars/**", "anon");
 		filterChainDefinitionMap.put("/v2/**", "anon");
-		
+
 		//性能监控
 		filterChainDefinitionMap.put("/actuator/metrics/**", "anon");
 		filterChainDefinitionMap.put("/actuator/httptrace/**", "anon");
 		filterChainDefinitionMap.put("/redis/**", "anon");
-		
+
 		//TODO 排除Online请求
 		filterChainDefinitionMap.put("/auto/cgform/**", "anon");
 		filterChainDefinitionMap.put("/online/cgreport/api/exportXls/**", "anon");
@@ -81,8 +78,6 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/api/user/mobilelogin", "anon");
 		filterChainDefinitionMap.put("/api/user/wxLogin", "anon");
 		filterChainDefinitionMap.put("/api/user/callBack", "anon");
-		filterChainDefinitionMap.put("/locaQQLogin", "anon");
-		filterChainDefinitionMap.put("/qqLoginCallback", "anon");
 		//从配置文件读取添加不需要token的路径
 		Yaml yaml = new Yaml();
 		URL url = ShiroConfig.class.getClassLoader().getResource("NotokenLogin.yml");

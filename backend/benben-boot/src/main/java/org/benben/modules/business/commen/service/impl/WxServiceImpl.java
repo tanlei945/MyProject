@@ -22,13 +22,13 @@ import java.util.Map;
 @Service
 public class WxServiceImpl implements IWxService {
 
-    @Value("${weiXin.appId}")
+    @Value("${wecat.appId}")
     private String appId;
-    @Value("${weiXin.appSecret}")
+    @Value("${wecat.appSecret}")
     private String appSecret;
-    @Value("${weiXin.token}")
+    @Value("${wecat.token}")
     private String token;
-    @Value("${weiXin.backUrl}")
+    @Value("${wecat.backUrl}")
     private String backUrl;
 
     @Override

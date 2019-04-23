@@ -51,19 +51,19 @@
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="用户类型  0/普通用户,1/骑手">
-          <a-input placeholder="请输入用户类型  0/普通用户,1/骑手" v-decorator="['type', validatorRules.type ]" />
+          <a-input placeholder="请输入用户类型  0/普通用户,1/骑手" v-decorator="['userType', validatorRules.userType ]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="电子邮箱">
-          <a-input placeholder="请输入电子邮箱" v-decorator="['email', validatorRules.email ]" />
+          <a-input placeholder="请输入电子邮箱" v-decorator="['email', {}]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="手机号">
-          <a-input placeholder="请输入手机号" v-decorator="['mobile', validatorRules.mobile ]" />
+          <a-input placeholder="请输入手机号" v-decorator="['mobile', {}]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
@@ -75,7 +75,7 @@
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="等级">
-          <a-input placeholder="请输入等级" v-decorator="['level', validatorRules.level ]" />
+          <a-input placeholder="请输入等级" v-decorator="['userLevel', validatorRules.userLevel ]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
@@ -99,7 +99,7 @@
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="余额">
-          <a-input-number v-decorator="[ 'money', validatorRules.money ]" />
+          <a-input-number v-decorator="[ 'userMoney', validatorRules.userMoney ]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
@@ -129,7 +129,7 @@
                 :labelCol="labelCol"
                 :wrapperCol="wrapperCol"
                 label="登录时间">
-          <a-input-number v-decorator="[ 'loginTime', {}]" />
+          <a-date-picker showTime format='YYYY-MM-DD HH:mm:ss' v-decorator="[ 'loginTime', {}]" />
         </a-form-item>
         <a-form-item
                 :labelCol="labelCol"
@@ -203,12 +203,10 @@
         confirmLoading: false,
         form: this.$form.createForm(this),
         validatorRules:{
-          type:{rules: [{ required: true, message: '请输入用户类型  0/普通用户,1/骑手!' }]},
-          email:{rules: [{ required: true, message: '请输入电子邮箱!' }]},
-          mobile:{rules: [{ required: true, message: '请输入手机号!' }]},
-          level:{rules: [{ required: true, message: '请输入等级!' }]},
+          userType:{rules: [{ required: true, message: '请输入用户类型  0/普通用户,1/骑手!' }]},
+          userLevel:{rules: [{ required: true, message: '请输入等级!' }]},
           sex:{rules: [{ required: true, message: '请输入性别  0/男,1/女!' }]},
-          money:{rules: [{ required: true, message: '请输入余额!' }]},
+          userMoney:{rules: [{ required: true, message: '请输入余额!' }]},
           score:{rules: [{ required: true, message: '请输入积分!' }]},
           successIons:{rules: [{ required: true, message: '请输入连续登录天数!' }]},
           maxsuccessIons:{rules: [{ required: true, message: '请输入最大连续登录天数!' }]},
@@ -217,8 +215,8 @@
           delFlag:{rules: [{ required: true, message: '请输入删除状态  0/正常,1/已删除!' }]},
         },
         url: {
-          add: "/user1/user/add",
-          edit: "/user1/user/edit",
+          add: "/user/add",
+          edit: "/user/edit",
         },
       }
     },
@@ -233,9 +231,10 @@
         this.model = Object.assign({}, record);
         this.visible = true;
         this.$nextTick(() => {
-          this.form.setFieldsValue(pick(this.model,'groupId','username','realname','nickname','password','salt','type','email','mobile','avatar','level','sex','bio','money','score','successIons','maxsuccessIons','prevTime','loginTime','loginip','loginfailure','joinip','status','delFlag','inviterId'))
+          this.form.setFieldsValue(pick(this.model,'groupId','username','realname','nickname','password','salt','userType','email','mobile','avatar','userLevel','sex','bio','userMoney','score','successIons','maxsuccessIons','prevTime','loginip','loginfailure','joinip','status','delFlag','inviterId'))
           //时间格式化
           this.form.setFieldsValue({birthday:this.model.birthday?moment(this.model.birthday):null})
+          this.form.setFieldsValue({loginTime:this.model.loginTime?moment(this.model.loginTime):null})
           this.form.setFieldsValue({joinTime:this.model.joinTime?moment(this.model.joinTime):null})
         });
 
@@ -262,6 +261,7 @@
             let formData = Object.assign(this.model, values);
             //时间格式化
             formData.birthday = formData.birthday?formData.birthday.format('YYYY-MM-DD HH:mm:ss'):null;
+            formData.loginTime = formData.loginTime?formData.loginTime.format('YYYY-MM-DD HH:mm:ss'):null;
             formData.joinTime = formData.joinTime?formData.joinTime.format('YYYY-MM-DD HH:mm:ss'):null;
 
             console.log(formData)

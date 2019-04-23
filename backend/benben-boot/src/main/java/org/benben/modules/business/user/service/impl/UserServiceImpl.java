@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Collection;
 
 /**
@@ -33,7 +32,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 	private UserMapper userMapper;
 	@Autowired
 	private UserThirdMapper userThirdMapper;
-	
+
 //	@Override
 //	@Transactional
 //	public void saveMain(User user, List<UserThird> userThirdList) {
@@ -78,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 	}
 
 	@Override
-	public User getByUsername(String username) {
+	public User queryByUsername(String username) {
 		QueryWrapper<User> userInfoQueryWrapper = new QueryWrapper<>();
 		userInfoQueryWrapper.eq("username", username);
 		User user = userMapper.selectOne(userInfoQueryWrapper);
@@ -106,7 +105,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
 		UserThird userThird = new UserThird();
 		userThird.setUserId(userId);
-		userThird.setOpenid(openId);
+		userThird.setOpenId(openId);
+		userThird.setOpenType(type);
 
 		return userThirdMapper.insert(userThird);
 	}
@@ -119,6 +119,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 		((HttpServletRequest) request).getSession().setAttribute("qq_connect_state", state);
 		String scope = QQConnectConfig.getValue("scope");
 		return scope != null && !scope.equals("") ? this.getAuthorizeURL("code", state, scope) : QQConnectConfig.getValue("authorizeURL").trim() + "?client_id=" + QQConnectConfig.getValue("app_ID").trim() + "&redirect_uri=" + QQConnectConfig.getValue("redirect_URI").trim() + "&response_type=" + "code" + "&state=" + state;
+	}
+
+	/**
+	 * 忘记密码
+	 * @param mobile
+	 * @param password
+	 * @return
+	 */
+	@Override
+	@Transactional
+	public int forgetPassword(String mobile, String password) {
+
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("mobile",mobile);
+
+		User user = userMapper.selectOne(queryWrapper);
+		if(user == null){
+			return 0;
+		}
+
+		user.setPassword(password);
+
+		return userMapper.insert(user);
 	}
 
 

@@ -1,0 +1,4 @@
+filterlist:
+  - /api/user/delete
+  - /api/user/wb_login
+  - /api/user/wb_callback

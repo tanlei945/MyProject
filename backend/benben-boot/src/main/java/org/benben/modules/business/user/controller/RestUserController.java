@@ -25,6 +25,7 @@ import org.benben.common.util.RedisUtil;
 import org.benben.common.util.oConvertUtils;
 import org.benben.modules.business.commen.dto.SmsDTO;
 import org.benben.modules.business.commen.service.ISMSService;
+import org.benben.modules.business.commen.service.IWbService;
 import org.benben.modules.business.commen.service.IWxService;
 import org.benben.modules.business.user.entity.User;
 import org.benben.modules.business.user.entity.UserThird;
@@ -71,6 +72,9 @@ public class RestUserController {
     private IWxService iWxService;
 
     @Autowired
+    private IWbService iWbService;
+
+    @Autowired
     private RedisUtil redisUtil;
 
 
@@ -79,7 +83,7 @@ public class RestUserController {
     public RestResponseBean login(@RequestParam("username") String username, @RequestParam("password") String password) {
 
         JSONObject obj = new JSONObject();
-        User user = userService.getByUsername(username);
+        User user = userService.queryByUsername(username);
 
         if (user == null) {
             sysBaseAPI.addLog("登录失败，用户名:" + username + "不存在！", CommonConstant.LOG_TYPE_1, null);
@@ -471,7 +475,7 @@ public class RestUserController {
         if (user == null) {
             //未登录,未绑定
             if (userEntity == null) {
-                return new RestResponseBean(ResultEnum.WX_UNBOUND_OPENID.getValue(), ResultEnum.WX_UNBOUND_OPENID.getDesc(), null);
+                return new RestResponseBean(ResultEnum.UNBOUND_OPENID.getValue(), ResultEnum.UNBOUND_OPENID.getDesc(), null);
             }
             //未登录,已绑定,返回登录信息token等
             return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userEntity));
@@ -480,13 +484,13 @@ public class RestUserController {
         if (userEntity == null) {
             //绑定微信
             if (userService.bindingThird(openid,user.getId(),"1") == 1) {
-                return new RestResponseBean(ResultEnum.WX_BINDING_SUCCESS.getValue(), ResultEnum.WX_BINDING_SUCCESS.getDesc(), null);
+                return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
             }
             //绑定失败
-            return new RestResponseBean(ResultEnum.WX_BINDING_ERROR.getValue(), ResultEnum.WX_BINDING_ERROR.getDesc(), null);
+            return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(), ResultEnum.BINDING_FAIL.getDesc(), null);
         }
         //已登录,禁止重复绑定
-        return new RestResponseBean(ResultEnum.WX_REPEATED_BINDING.getValue(), ResultEnum.WX_REPEATED_BINDING.getDesc(), null);
+        return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
     }
 
     /**
@@ -562,17 +566,17 @@ public class RestUserController {
                 if (user != null) {
                     //判断是否已经绑定
                     if (userThird != null) {
-                        return new RestResponseBean(ResultEnum.QQ_REPEATED_BINDING.getValue(), ResultEnum.QQ_REPEATED_BINDING.getDesc(), null);
+                        return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
                     }
                     //绑定QQ
                     if( userService.bindingThird(openID,userEntity.getId(),"0") == 1){
-                        return new RestResponseBean(ResultEnum.QQ_BINDING_SUCCESS.getValue(),ResultEnum.QQ_BINDING_SUCCESS.getDesc(),null);
+                        return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(),ResultEnum.BINDING_SUCCESS.getDesc(),null);
                     }
-                    return new RestResponseBean(ResultEnum.QQ_BINDING_FAIL.getValue(),ResultEnum.QQ_BINDING_FAIL.getDesc(),null);
+                    return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(),ResultEnum.BINDING_FAIL.getDesc(),null);
                 }
 
                 if (userThird == null) {
-                    return new RestResponseBean(ResultEnum.QQ_UNBOUND_OPENID.getValue(), ResultEnum.QQ_UNBOUND_OPENID.getDesc(), null);
+                    return new RestResponseBean(ResultEnum.UNBOUND_OPENID.getValue(), ResultEnum.UNBOUND_OPENID.getDesc(), null);
                 }
                 this.tokenBuild(userEntity);
 
@@ -580,10 +584,88 @@ public class RestUserController {
         } catch (QQConnectException e) {
             e.printStackTrace();
             System.out.println("QQ登录失败，原因：" + e.getMessage());
-            return new RestResponseBean(ResultEnum.QQ_LOGIN_FAIL.getValue(), ResultEnum.QQ_LOGIN_FAIL.getDesc() + "失败原因:" + e.getMessage(), null);
+            return new RestResponseBean(ResultEnum.LOGIN_FAIL.getValue(), ResultEnum.LOGIN_FAIL.getDesc() + "失败原因:" + e.getMessage(), null);
 
         }
-        return new RestResponseBean(ResultEnum.QQ_LOGIN.getValue(), ResultEnum.QQ_LOGIN.getDesc(), null);
+        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), null);
+    }
+
+    /**
+     * 微博登录
+     *
+     * @return
+     */
+    @GetMapping(value = "/wb_login")
+    @ApiOperation(value = "微博登录", tags = {"会员接口"}, notes = "微博登录")
+    public void wbLogin(HttpServletResponse response, HttpServletRequest request) {
+
+        iWbService.login(response,request);
+
+    }
+
+    /**
+     * 微博回调
+     *
+     * @param request
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @GetMapping(value = "/wb_callback")
+    public RestResponseBean wbCallBack(HttpServletRequest request) {
+
+        User userEntity = null;
+        //获取回调map
+        Map<String, String> map = iWbService.callBack(request);
+        String openid = map.get("openid");
+        String mobile = map.get("mobile");
+        //返回空则表明回调异常
+        if (StringUtils.isBlank(openid)) {
+            return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
+        }
+        //查询登录状态
+        User user = userService.queryByMobile(mobile);
+        //查询是否已有账户绑定该微博
+        UserThird userThird = userThirdService.queryByOpenid(openid);
+        if(userThird != null){
+            //查询绑定的用户信息
+            userEntity = userService.getById(userThird.getUserId());
+        }
+        //未登录
+        if (user == null) {
+            //未登录,未绑定
+            if (userEntity == null) {
+                return new RestResponseBean(ResultEnum.UNBOUND_OPENID.getValue(), ResultEnum.UNBOUND_OPENID.getDesc(), null);
+            }
+            //未登录,已绑定,返回登录信息token等
+            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userEntity));
+        }
+        //已登录,未绑定
+        if (userEntity == null) {
+            //绑定微博
+            if (userService.bindingThird(openid,user.getId(),"2") == 1) {
+                return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
+            }
+            //绑定失败
+            return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(), ResultEnum.BINDING_FAIL.getDesc(), null);
+        }
+        //已登录,禁止重复绑定
+        return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
+    }
+
+    @PostMapping("/forget_password")
+    @ApiOperation(value = "忘记密码", tags = {"会员接口"}, notes = "忘记密码")
+    public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
+
+        if(StringUtils.equals(mobile,"")||StringUtils.equals(password,"")){
+            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+        }
+
+        if(userService.forgetPassword(mobile,password) == 0){
+            return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+        }
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
     }
 
 

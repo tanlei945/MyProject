@@ -44,52 +44,32 @@ public class CommonController {
 	@Value(value = "${benben.path.upload}")
 	private String uploadpath;
 
-//	@PostMapping(value = "/upload")
-//	public Result<SysUser> upload(HttpServletRequest request, HttpServletResponse response) {
-//		Result<SysUser> result = new Result<>();
-//		try {
-//			String ctxPath = uploadpath;
-//			String fileName = null;
-//			String bizPath = "user";
-//			String nowday = new SimpleDateFormat("yyyyMMdd").format(new Date());
-//			File file = new File(ctxPath + File.separator + bizPath + File.separator + nowday);
-//			if (!file.exists()) {
-//				file.mkdirs();// 创建文件根目录
-//			}
-//			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-//			MultipartFile mf = multipartRequest.getFile("file");// 获取上传文件对象
-//			String orgName = mf.getOriginalFilename();// 获取文件名
-//			fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
-//			String savePath = file.getPath() + File.separator + fileName;
-//			File savefile = new File(savePath);
-//			FileCopyUtils.copy(mf.getBytes(), savefile);
-//			String dbpath = bizPath + File.separator + nowday + File.separator + fileName;
-//			if (dbpath.contains("\\")) {
-//				dbpath = dbpath.replace("\\", "/");
-//			}
-//			result.setMessage(dbpath);
-//			result.setSuccess(true);
-//		} catch (IOException e) {
-//			result.setSuccess(false);
-//			result.setMessage(e.getMessage());
-//			e.printStackTrace();
-//		}
-//		return result;
-//	}
-
 	@PostMapping(value = "/upload")
 	public Result<SysUser> upload(HttpServletRequest request, HttpServletResponse response) {
 		Result<SysUser> result = new Result<>();
 		try {
-
+			String ctxPath = uploadpath;
+			String fileName = null;
+			String bizPath = "user";
+			String nowday = new SimpleDateFormat("yyyyMMdd").format(new Date());
+			File file = new File(ctxPath + File.separator + bizPath + File.separator + nowday);
+			if (!file.exists()) {
+				file.mkdirs();// 创建文件根目录
+			}
 			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
 			MultipartFile mf = multipartRequest.getFile("file");// 获取上传文件对象
-			MultipartFile [] array = {mf};
-			String dbpath = OSSClientUtils.fileUpload(array);
-
+			String orgName = mf.getOriginalFilename();// 获取文件名
+			fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
+			String savePath = file.getPath() + File.separator + fileName;
+			File savefile = new File(savePath);
+			FileCopyUtils.copy(mf.getBytes(), savefile);
+			String dbpath = bizPath + File.separator + nowday + File.separator + fileName;
+			if (dbpath.contains("\\")) {
+				dbpath = dbpath.replace("\\", "/");
+			}
 			result.setMessage(dbpath);
 			result.setSuccess(true);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			result.setSuccess(false);
 			result.setMessage(e.getMessage());
 			e.printStackTrace();
@@ -97,10 +77,30 @@ public class CommonController {
 		return result;
 	}
 
+//	@PostMapping(value = "/upload")
+//	public Result<SysUser> upload(HttpServletRequest request, HttpServletResponse response) {
+//		Result<SysUser> result = new Result<>();
+//		try {
+//
+//			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+//			MultipartFile mf = multipartRequest.getFile("file");// 获取上传文件对象
+//			MultipartFile [] array = {mf};
+//			String dbpath = OSSClientUtils.fileUpload(array);
+//
+//			result.setMessage(dbpath);
+//			result.setSuccess(true);
+//		} catch (Exception e) {
+//			result.setSuccess(false);
+//			result.setMessage(e.getMessage());
+//			e.printStackTrace();
+//		}
+//		return result;
+//	}
+
 	/**
 	 * 预览图片
 	 * 请求地址：http://localhost:8080/common/view/{user/20190119/e1fe9925bc315c60addea1b98eb1cb1349547719_1547866868179.jpg}
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 */
@@ -150,8 +150,8 @@ public class CommonController {
 	}
 
 	/**
-	  *  把指定URL后的字符串全部截断当成参数 
-	  *  这么做是为了防止URL中包含中文或者特殊字符（/等）时，匹配不了的问题
+	 *  把指定URL后的字符串全部截断当成参数
+	 *  这么做是为了防止URL中包含中文或者特殊字符（/等）时，匹配不了的问题
 	 * @param request
 	 * @return
 	 */

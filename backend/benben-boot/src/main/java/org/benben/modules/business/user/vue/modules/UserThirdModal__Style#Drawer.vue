@@ -1,47 +1,47 @@
 <template>
   <a-drawer
-      :title="title"
-      :width="800"
-      placement="right"
-      :closable="false"
-      @close="close"
-      :visible="visible"
+          :title="title"
+          :width="800"
+          placement="right"
+          :closable="false"
+          @close="close"
+          :visible="visible"
   >
 
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
-      
+
         <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
-          label="用户ID">
+                :labelCol="labelCol"
+                :wrapperCol="wrapperCol"
+                label="用户ID">
           <a-input placeholder="请输入用户ID" v-decorator="['userId', {}]" />
         </a-form-item>
         <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
-          label="QQ_OpenId">
+                :labelCol="labelCol"
+                :wrapperCol="wrapperCol"
+                label="QQ_OpenId">
           <a-input placeholder="请输入QQ_OpenId" v-decorator="['qqOpenid', {}]" />
         </a-form-item>
         <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
-          label="微信_OpenId">
+                :labelCol="labelCol"
+                :wrapperCol="wrapperCol"
+                label="微信_OpenId">
           <a-input placeholder="请输入微信_OpenId" v-decorator="['wxOpenid', {}]" />
         </a-form-item>
         <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
-          label="微博_OpenId">
+                :labelCol="labelCol"
+                :wrapperCol="wrapperCol"
+                label="微博_OpenId">
           <a-input placeholder="请输入微博_OpenId" v-decorator="['wbOpenid', {}]" />
         </a-form-item>
         <a-form-item
-          :labelCol="labelCol"
-          :wrapperCol="wrapperCol"
-          label="状态  0/启用,1/未启用,2/已删除">
+                :labelCol="labelCol"
+                :wrapperCol="wrapperCol"
+                label="状态  0/启用,1/未启用,2/已删除">
           <a-input placeholder="请输入状态  0/启用,1/未启用,2/已删除" v-decorator="['status', {}]" />
         </a-form-item>
-		
+
       </a-form>
     </a-spin>
     <a-button type="primary" @click="handleOk">确定</a-button>
@@ -92,7 +92,7 @@
         this.visible = true;
         this.$nextTick(() => {
           this.form.setFieldsValue(pick(this.model,'userId','qqOpenid','wxOpenid','wbOpenid','status'))
-		  //时间格式化
+          //时间格式化
         });
 
       },
@@ -113,11 +113,11 @@
               method = 'post';
             }else{
               httpurl+=this.url.edit;
-               method = 'put';
+              method = 'put';
             }
             let formData = Object.assign(this.model, values);
             //时间格式化
-            
+
             console.log(formData)
             httpAction(httpurl,formData,method).then((res)=>{
               if(res.success){
@@ -146,7 +146,7 @@
 </script>
 
 <style lang="less" scoped>
-/** Button按钮间距 */
+  /** Button按钮间距 */
   .ant-btn {
     margin-left: 30px;
     margin-bottom: 30px;

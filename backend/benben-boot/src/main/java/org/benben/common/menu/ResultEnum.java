@@ -51,7 +51,7 @@ public enum ResultEnum {
     /**
      * 返回token认证
      */
-     TOKEN_OVERDUE(1010,"token已过期"),
+    TOKEN_OVERDUE(1010,"token已过期"),
     TOKEN_NOT_OVERDUE(1011,"token未过期"),
 
 
@@ -63,23 +63,13 @@ public enum ResultEnum {
     IDENTITY_VERIFY_FAILURE(533, "身份证认证失败"),
 
     /**
-     * 短信相关
+     * QQ/微信/微博
      */
-    WX_BINDING_SUCCESS(700,"绑定成功"),
-    WX_BINDING_ERROR(701,"绑定失败"),
-    WX_UNBOUND_OPENID(702,"未绑定账号"),
-    WX_REPEATED_BINDING(703,"重复绑定"),
+    BINDING_SUCCESS(700,"绑定成功"),
+    BINDING_FAIL(701,"绑定失败"),
+    UNBOUND_OPENID(702,"未绑定账号"),
+    REPEATED_BINDING(703,"重复绑定"),
 
-
-    /**
-     * qq相关
-     */
-    QQ_BINDING_SUCCESS(811,"绑定成功"),
-    QQ_BINDING_FAIL(812,"绑定失败"),
-    QQ_UNBOUND_OPENID(813,"未绑定账号"),
-    QQ_REPEATED_BINDING(814,"重复绑定"),
-    QQ_LOGIN(815,"登录成功"),
-    QQ_LOGIN_FAIL(816,"登录失败"),
 
     /**
      * 短信相关

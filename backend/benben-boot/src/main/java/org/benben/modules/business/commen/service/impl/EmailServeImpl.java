@@ -13,7 +13,7 @@ import java.util.Properties;
 import java.util.Random;
 
 @Service
-public class IEmailServeImpl implements IEmailServe {
+public class EmailServeImpl implements IEmailServe {
 
     @Value("${mail.username}")
     private String username;
