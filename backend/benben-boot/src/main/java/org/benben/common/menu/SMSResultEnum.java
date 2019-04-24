@@ -9,7 +9,7 @@ import lombok.Getter;
 */
 
 @Getter
-public enum SMSEnum {
+public enum SMSResultEnum {
 
     SEND_SUCCESS("00000","发送成功","短信已成功发送"),
     PARAMETER_ABNORMAL("10000","参数异常","必传参数有空值()"),
@@ -31,7 +31,7 @@ public enum SMSEnum {
 
     private String desc;
 
-    SMSEnum(String code, String message, String desc) {
+    SMSResultEnum(String code, String message, String desc) {
         this.code = code;
         this.message = message;
         this.desc = desc;

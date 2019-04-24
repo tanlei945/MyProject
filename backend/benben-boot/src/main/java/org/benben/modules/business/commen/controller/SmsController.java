@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.benben.common.api.vo.RestResponseBean;
 import org.benben.common.menu.ResultEnum;
-import org.benben.common.menu.SMSEnum;
+import org.benben.common.menu.SMSResultEnum;
 import org.benben.common.util.RedisUtil;
 import org.benben.modules.business.commen.dto.SmsDTO;
 import org.benben.modules.business.commen.service.ISMSService;
@@ -51,7 +51,7 @@ public class SmsController {
 //
 //        String message = this.getResult(returncode);
 //
-//        if (!StringUtils.equals(message,SMSEnum.SEND_SUCCESS.getMessage())) {
+//        if (!StringUtils.equals(message,SMSResultEnum.SEND_SUCCESS.getMessage())) {
 //            return new RestResponseBean(ResultEnum.SMS_SEND_FAIL.getValue(), message, null);
 //        }
 //
@@ -100,7 +100,7 @@ public class SmsController {
             message = "发送失败";
         }
 
-        for (SMSEnum smsEnum : SMSEnum.values()) {
+        for (SMSResultEnum smsEnum : SMSResultEnum.values()) {
             if (StringUtils.equals(smsEnum.getCode(), returncode)) {
                 message = smsEnum.getMessage();
             }
