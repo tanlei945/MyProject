@@ -14,5 +14,5 @@ public interface IWxService {
 
     public void wxLogin(HttpServletResponse response, HttpServletRequest request);
 
-    public Map callBack(HttpServletRequest request);
+    public String callBack(HttpServletRequest request);
 }

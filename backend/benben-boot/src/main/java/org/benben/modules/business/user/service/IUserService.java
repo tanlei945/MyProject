@@ -1,15 +1,10 @@
 package org.benben.modules.business.user.service;
 
-import com.qq.connect.QQConnectException;
-import org.benben.common.api.vo.RestResponseBean;
-import org.benben.modules.business.user.entity.UserThird;
 import org.benben.modules.business.user.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import javax.servlet.ServletRequest;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @Description: 普通用户
@@ -46,8 +41,6 @@ public interface IUserService extends IService<User> {
 	public User queryByMobile(String moblie);
 
 	public int bindingThird(String openId , String userId, String type);
-
-	public String getQQURL(ServletRequest request) throws QQConnectException;
 
 	public int forgetPassword(String mobile, String password);
 

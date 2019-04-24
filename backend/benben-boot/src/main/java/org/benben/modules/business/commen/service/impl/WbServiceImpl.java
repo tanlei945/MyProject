@@ -62,13 +62,13 @@ public class WbServiceImpl implements IWbService {
      * @return
      */
     @Override
-    public Map callBack(HttpServletRequest request) {
+    public String callBack(HttpServletRequest request) {
 
-        Map map = new HashMap();
         HttpClient httpclient = null;
         PostMethod postMethod = null;
         GetMethod getMethod = null;
         String result = "";
+        String reply = "";
         Map<String, Object> resp;
 
         String code = request.getParameter("code");
@@ -108,10 +108,8 @@ public class WbServiceImpl implements IWbService {
             //返回信息
             result = new String(getMethod.getResponseBody(), "UTF-8");
             resp = JSONObject.parseObject(result, new TypeReference<Map<String, Object>>(){});
+            reply = uid;
             System.out.println("发送get 请求到服务器 获取用户信息---------------result:"+resp);
-
-            map.put("openid",uid);
-            map.put("mobile",mobile);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,6 +119,6 @@ public class WbServiceImpl implements IWbService {
             ((SimpleHttpConnectionManager) httpclient.getHttpConnectionManager()).shutdown();
         }
 
-        return map;
+        return reply;
     }
 }

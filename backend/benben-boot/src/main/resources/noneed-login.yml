@@ -1,0 +1,8 @@
+filterlist:
+  - /api/user/mobile_login
+  - /api/user/qq_login
+  - /api/user/qq_login_callback
+  - /api/user/wx_login
+  - /api/user/wx_login_callBack
+  - /api/user/wb_login
+  - /api/user/wb_login_callback

@@ -14,5 +14,5 @@ public interface IWbService {
 
     public void login(HttpServletResponse response, HttpServletRequest request);
 
-    public Map callBack(HttpServletRequest request);
+    public String callBack(HttpServletRequest request);
 }

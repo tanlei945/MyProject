@@ -5,13 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qq.connect.QQConnectException;
-import com.qq.connect.api.OpenID;
-import com.qq.connect.javabeans.AccessToken;
 import com.qq.connect.oauth.Oauth;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -24,6 +21,7 @@ import org.benben.common.util.PasswordUtil;
 import org.benben.common.util.RedisUtil;
 import org.benben.common.util.oConvertUtils;
 import org.benben.modules.business.commen.dto.SmsDTO;
+import org.benben.modules.business.commen.service.IQqService;
 import org.benben.modules.business.commen.service.ISMSService;
 import org.benben.modules.business.commen.service.IWbService;
 import org.benben.modules.business.commen.service.IWxService;
@@ -36,13 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * @Title: Controller
@@ -73,6 +67,9 @@ public class RestUserController {
 
     @Autowired
     private IWbService iWbService;
+
+    @Autowired
+    private IQqService iQqService;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -385,20 +382,6 @@ public class RestUserController {
         return result;
     }
 
-    @GetMapping("/logincheck")
-    public String loginUrl(HttpServletRequest request) {
-        //获取当前sesion
-        HttpSession sessoin = request.getSession();
-        //随机产生字符串
-        String state = RandomStringUtils.random(10);
-        sessoin.setAttribute("state", state);
-        //重定向
-        return "redirect:https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id="
-                + 101531196 + "&redirect_uri=" + "http://127.0.0.1:8080/recall" + "&state=" + state;
-
-    }
-
-
     /**
      * 短信登录
      *
@@ -406,7 +389,7 @@ public class RestUserController {
      * @param bindingResult
      * @return
      */
-    @PostMapping(value = "/mobilelogin")
+    @PostMapping(value = "/mobile_login")
     @ApiOperation(value = "手机验证码登录", tags = {"会员接口"}, notes = "手机验证码登录")
     public RestResponseBean mobilelogin(@Valid SmsDTO smsDTO, BindingResult bindingResult) {
 
@@ -430,86 +413,24 @@ public class RestUserController {
         return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
     }
 
-    /**
-     * 微信登录
-     *
-     * @return
-     */
-    @PostMapping(value = "/wxLogin")
-    @ApiOperation(value = "微信登录", tags = {"会员接口"}, notes = "微信登录")
-    public void wxLogin(HttpServletResponse response, HttpServletRequest request) {
 
-        iWxService.wxLogin(response, request);
-
-    }
-
-    /**
-     * 微信回调
-     *
-     * @param request
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @GetMapping(value = "/callBack")
-    public RestResponseBean callBack(HttpServletRequest request) {
-
-        User userEntity = null;
-        //获取回调map
-        Map<String, String> map = iWxService.callBack(request);
-        String openid = map.get("openid");
-        String mobile = map.get("mobile");
-        //返回空则表明回调异常
-        if (StringUtils.isBlank(openid)) {
-            return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
-        }
-        //查询登录状态
-        User user = userService.queryByMobile(mobile);
-        //查询是否已有账户绑定该WX
-        UserThird userThird = userThirdService.queryByOpenid(openid);
-        if(userThird != null){
-            //查询绑定的用户信息
-            userEntity = userService.getById(userThird.getUserId());
-        }
-        //未登录
-        if (user == null) {
-            //未登录,未绑定
-            if (userEntity == null) {
-                return new RestResponseBean(ResultEnum.UNBOUND_OPENID.getValue(), ResultEnum.UNBOUND_OPENID.getDesc(), null);
-            }
-            //未登录,已绑定,返回登录信息token等
-            return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(userEntity));
-        }
-        //已登录,未绑定
-        if (userEntity == null) {
-            //绑定微信
-            if (userService.bindingThird(openid,user.getId(),"1") == 1) {
-                return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
-            }
-            //绑定失败
-            return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(), ResultEnum.BINDING_FAIL.getDesc(), null);
-        }
-        //已登录,禁止重复绑定
-        return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
-    }
 
     /**
      * qq登录
      *
-     * @param request
      * @param response
      * @throws QQConnectException
      */
-    @PostMapping("/locaQQLogin")
+    @GetMapping("/qq_login")
     @ApiOperation(value = "qq登录", tags = {"会员接口"}, notes = "qq登录")
-    public void locaQQLogin(HttpServletRequest request, HttpServletResponse response) throws QQConnectException {
-        //生成授权连接
-        response.setContentType("text/html;charset=utf-8");
+    public void qqlogin(HttpServletRequest request,HttpServletResponse response) {
+
+        String mobile = request.getParameter("mobile");
 
         try {
-
-            response.sendRedirect(userService.getQQURL(request));
-
+            //生成授权连接
+            response.setContentType("text/html;charset=utf-8");
+            response.sendRedirect((new Oauth().getAuthorizeURL(mobile)));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -519,75 +440,46 @@ public class RestUserController {
 
     /**
      * qq登录回调
-     *
      * @param request
-     * @param httpSession
-     * @param response
      * @return
-     * @throws QQConnectException
      */
-    @GetMapping("/qqLoginCallback")
-    public RestResponseBean qqLoginCallback(HttpServletRequest request, HttpSession httpSession, HttpServletResponse response) throws QQConnectException {
+    @GetMapping("/qq_login_callback")
+    public RestResponseBean qqLoginCallback(HttpServletRequest request) {
 
-        User userEntity = null;
-
-        response.setContentType("text/html;charset=utf-8");
+        //获取回调
+        String openid = iQqService.callBack(request);
         String mobile = request.getParameter("state");
 
-        String accessToken = null;
-        String openID = null;
-        long tokenExpireIn = 0L;
+        return publicCallBack(openid,mobile,"0");
+    }
 
-        User user = userService.queryByMobile(mobile);
+    /**
+     * 微信登录
+     *
+     * @return
+     */
+    @PostMapping(value = "/wx_login")
+    @ApiOperation(value = "微信登录", tags = {"会员接口"}, notes = "微信登录")
+    public void wxLogin(HttpServletResponse response, HttpServletRequest request) {
 
-        String queryString = ((HttpServletRequest) request).getQueryString();
-        try {
-            AccessToken accessTokenObj = (new Oauth().getAccessTokenByQueryString(queryString, mobile));
-            if (accessTokenObj.getAccessToken().equals("")) {
-                System.out.println("没有获取到响应参数");
-                return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
-            } else {
-                //得到token
-                accessToken = accessTokenObj.getAccessToken();
-                tokenExpireIn = accessTokenObj.getExpireIn();
-                request.getSession().setAttribute("demo_access_token", accessToken);
-                request.getSession().setAttribute("demo_token_expirein", String.valueOf(tokenExpireIn));
-                // 利用获取到的accessToken 去获取当前用的openid -------- start
-                OpenID openIDObj = new OpenID(accessToken);
-                openID = openIDObj.getUserOpenID();
-                //查询是否已有账户绑定该QQ
-                UserThird userThird = userThirdService.queryByOpenid(openID);
-                if(userThird != null){
-                    //查询绑定的用户信息
-                    userEntity = userService.getById(userThird.getUserId());
-                }
+        iWxService.wxLogin(response, request);
 
-                //判断是否已经登录
-                if (user != null) {
-                    //判断是否已经绑定
-                    if (userThird != null) {
-                        return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
-                    }
-                    //绑定QQ
-                    if( userService.bindingThird(openID,userEntity.getId(),"0") == 1){
-                        return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(),ResultEnum.BINDING_SUCCESS.getDesc(),null);
-                    }
-                    return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(),ResultEnum.BINDING_FAIL.getDesc(),null);
-                }
+    }
 
-                if (userThird == null) {
-                    return new RestResponseBean(ResultEnum.UNBOUND_OPENID.getValue(), ResultEnum.UNBOUND_OPENID.getDesc(), null);
-                }
-                this.tokenBuild(userEntity);
+    /**
+     * 微信回调
+     * @param request
+     * @return
+     */
+    @GetMapping(value = "/wx_login_callBack")
+    public RestResponseBean callBack(HttpServletRequest request) {
 
-            }
-        } catch (QQConnectException e) {
-            e.printStackTrace();
-            System.out.println("QQ登录失败，原因：" + e.getMessage());
-            return new RestResponseBean(ResultEnum.LOGIN_FAIL.getValue(), ResultEnum.LOGIN_FAIL.getDesc() + "失败原因:" + e.getMessage(), null);
+        User userEntity = null;
+        //获取回调
+        String openid = iWxService.callBack(request);
+        String mobile = request.getParameter("state");
 
-        }
-        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), null);
+        return publicCallBack(openid,mobile,"1");
     }
 
     /**
@@ -605,20 +497,47 @@ public class RestUserController {
 
     /**
      * 微博回调
-     *
      * @param request
      * @return
-     * @throws ServletException
-     * @throws IOException
      */
-    @GetMapping(value = "/wb_callback")
+    @GetMapping(value = "/wb_login_callback")
     public RestResponseBean wbCallBack(HttpServletRequest request) {
 
         User userEntity = null;
-        //获取回调map
-        Map<String, String> map = iWbService.callBack(request);
-        String openid = map.get("openid");
-        String mobile = map.get("mobile");
+        //获取回调
+        String openid = iWbService.callBack(request);
+        String mobile = request.getParameter("state");
+
+        return publicCallBack(openid,mobile,"2");
+    }
+
+    @PostMapping("/forget_password")
+    @ApiOperation(value = "忘记密码", tags = {"会员接口"}, notes = "忘记密码")
+    public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
+
+        if(StringUtils.equals(mobile,"")||StringUtils.equals(password,"")){
+            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+        }
+
+        if(userService.forgetPassword(mobile,password) == 0){
+            return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+        }
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
+    }
+
+
+    /**
+     * 公共方法,三方登录公共回调
+     * @param openid
+     * @param mobile
+     * @param type
+     * @return
+     */
+    private RestResponseBean publicCallBack(String openid,String mobile,String type){
+
+        User userEntity = null;
+
         //返回空则表明回调异常
         if (StringUtils.isBlank(openid)) {
             return new RestResponseBean(ResultEnum.ERROR.getValue(), ResultEnum.ERROR.getDesc(), null);
@@ -642,10 +561,28 @@ public class RestUserController {
         }
         //已登录,未绑定
         if (userEntity == null) {
-            //绑定微博
-            if (userService.bindingThird(openid,user.getId(),"2") == 1) {
-                return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
+
+            switch (type){
+                case "0":
+                    //绑定QQ
+                    if (userService.bindingThird(openid,user.getId(),"0") == 1) {
+                        return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
+                    }
+                    break;
+                case "1":
+                    //绑定微信
+                    if (userService.bindingThird(openid,user.getId(),"1") == 1) {
+                        return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
+                    }
+                    break;
+                default :
+                    //绑定微博
+                    if (userService.bindingThird(openid,user.getId(),"2") == 1) {
+                        return new RestResponseBean(ResultEnum.BINDING_SUCCESS.getValue(), ResultEnum.BINDING_SUCCESS.getDesc(), null);
+                    }
+                    break;
             }
+
             //绑定失败
             return new RestResponseBean(ResultEnum.BINDING_FAIL.getValue(), ResultEnum.BINDING_FAIL.getDesc(), null);
         }
@@ -653,24 +590,8 @@ public class RestUserController {
         return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
     }
 
-    @PostMapping("/forget_password")
-    @ApiOperation(value = "忘记密码", tags = {"会员接口"}, notes = "忘记密码")
-    public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
-
-        if(StringUtils.equals(mobile,"")||StringUtils.equals(password,"")){
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
-        }
-
-        if(userService.forgetPassword(mobile,password) == 0){
-            return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
-        }
-
-        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
-    }
-
-
     /**
-     * 公共方法,作用于:账号密码登录,手机验证码登录,三方登录
+     * 公共方法,三方登录返回信息token
      *
      * @param user 根据传参查询到的实体
      * @return

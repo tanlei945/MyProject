@@ -52,9 +52,7 @@ public class WxServiceImpl implements IWxService {
     }
 
     @Override
-    public Map callBack(HttpServletRequest request) {
-
-        Map map = new HashMap();
+    public String callBack(HttpServletRequest request) {
 
         String result = "";
              /*
@@ -128,10 +126,9 @@ public class WxServiceImpl implements IWxService {
          */
         //获取到用户信息后就可以进行重定向，走自己的业务逻辑了。。。。。。
         //接来的逻辑就是你系统逻辑了，请自由发挥
-        map.put("openid", userInfo.getString("openid"));
-        map.put("mobile", mobile);
+        result = userInfo.getString("openid");
 
-        return map;
+        return result;
     }
 
 }
