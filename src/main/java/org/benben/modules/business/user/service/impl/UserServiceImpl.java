@@ -3,7 +3,6 @@ package org.benben.modules.business.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.qq.connect.QQConnectException;
 import com.qq.connect.utils.QQConnectConfig;
-import org.apache.shiro.SecurityUtils;
 import org.benben.modules.business.user.entity.User;
 import org.benben.modules.business.user.entity.UserThird;
 import org.benben.modules.business.user.mapper.UserThirdMapper;
@@ -14,8 +13,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -111,15 +108,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 		return userThirdMapper.insert(userThird);
 	}
 
-
-	@Override
-	public String getQQURL(ServletRequest request) throws QQConnectException {
-		String state = request.getParameter("mobile");
-//        String state = RandomStatusGenerator.getUniqueState();
-		((HttpServletRequest) request).getSession().setAttribute("qq_connect_state", state);
-		String scope = QQConnectConfig.getValue("scope");
-		return scope != null && !scope.equals("") ? this.getAuthorizeURL("code", state, scope) : QQConnectConfig.getValue("authorizeURL").trim() + "?client_id=" + QQConnectConfig.getValue("app_ID").trim() + "&redirect_uri=" + QQConnectConfig.getValue("redirect_URI").trim() + "&response_type=" + "code" + "&state=" + state;
-	}
 
 	/**
 	 * 忘记密码
