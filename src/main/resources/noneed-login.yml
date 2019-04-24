@@ -6,3 +6,4 @@ filterlist:
   - /api/user/wx_login_callBack
   - /api/user/wb_login
   - /api/user/wb_login_callback
+  - /api/sms/**
