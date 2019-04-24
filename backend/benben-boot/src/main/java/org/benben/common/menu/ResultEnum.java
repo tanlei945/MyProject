@@ -9,6 +9,8 @@ public enum ResultEnum {
 
     OPERATION_FAIL(300,"操作失败"),
 
+    QUERY_NOT_EXIST(400,"查询不存在"),
+
     ERROR(500, "系统错误"),
     /**
      * 登陆注册返回code

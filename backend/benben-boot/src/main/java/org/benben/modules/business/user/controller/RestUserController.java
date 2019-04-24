@@ -17,6 +17,7 @@ import org.benben.common.api.vo.Result;
 import org.benben.common.constant.CommonConstant;
 import org.benben.common.menu.ResultEnum;
 import org.benben.common.system.api.ISysBaseAPI;
+import org.benben.common.system.query.QueryGenerator;
 import org.benben.common.util.PasswordUtil;
 import org.benben.common.util.RedisUtil;
 import org.benben.common.util.oConvertUtils;
@@ -40,14 +41,14 @@ import javax.validation.Valid;
 
 /**
  * @Title: Controller
- * @Description: 普通用户
+ * @Description: 用户
  * @author： jeecg-boot
  * @date： 2019-04-19
  * @version： V1.0
  */
 @RestController
 @RequestMapping("/api/user")
-@Api(tags = {"会员接口"})
+@Api(tags = {"用户接口"})
 @Slf4j
 public class RestUserController {
     @Autowired
@@ -75,125 +76,57 @@ public class RestUserController {
     private RedisUtil redisUtil;
 
 
-    @PostMapping(value = "/login")
-    @ApiOperation(value = "会员登录接口", tags = {"会员接口"}, notes = "会员登录接口")
-    public RestResponseBean login(@RequestParam("username") String username, @RequestParam("password") String password) {
-
-        JSONObject obj = new JSONObject();
-        User user = userService.queryByUsername(username);
-
-        if (user == null) {
-            sysBaseAPI.addLog("登录失败，用户名:" + username + "不存在！", CommonConstant.LOG_TYPE_1, null);
-            return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
-        } else {
-            //密码验证
-            String userpassword = PasswordUtil.encrypt(username, password, user.getSalt());
-            String syspassword = user.getPassword();
-            if (!syspassword.equals(userpassword)) {
-                return new RestResponseBean(ResultEnum.USER_PWD_ERROR.getValue(), ResultEnum.USER_PWD_ERROR.getDesc(), null);
-            }
-            //调用公共方法
-            obj = tokenBuild(user);
-        }
-
-        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), obj);
-    }
-
-
     /**
      * 分页列表查询
-     *
      * @param user
      * @param pageNo
      * @param pageSize
      * @param req
      * @return
      */
-
     @GetMapping(value = "/list")
-    @ApiOperation(value = "会员列表", tags = {"会员接口"}, notes = "会员列表")
-    public Result<IPage<User>> queryPageList(User user,
-                                             @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                             @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                             HttpServletRequest req) {
-        Result<IPage<User>> result = new Result<IPage<User>>();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<User>(user);
+    @ApiOperation(value = "用户列表", tags = {"用户接口"}, notes = "用户列表")
+    public RestResponseBean queryPageList(User user,
+                                          @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
+                                          @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
+                                          HttpServletRequest req) {
+
+        QueryWrapper<User> queryWrapper = QueryGenerator.initQueryWrapper(user, req.getParameterMap());
         Page<User> page = new Page<User>(pageNo, pageSize);
-        //排序逻辑 处理
-        String column = req.getParameter("column");
-        String order = req.getParameter("order");
-        if (oConvertUtils.isNotEmpty(column) && oConvertUtils.isNotEmpty(order)) {
-            if ("asc".equals(order)) {
-                queryWrapper.orderByAsc(oConvertUtils.camelToUnderline(column));
-            } else {
-                queryWrapper.orderByDesc(oConvertUtils.camelToUnderline(column));
-            }
-        }
         IPage<User> pageList = userService.page(page, queryWrapper);
-        //log.debug("查询当前页："+pageList.getCurrent());
-        //log.debug("查询当前页数量："+pageList.getSize());
-        //log.debug("查询结果数量："+pageList.getRecords().size());
-        //log.debug("数据总数："+pageList.getTotal());
-        result.setSuccess(true);
-        result.setResult(pageList);
-        return result;
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),pageList);
     }
 
-    /**
-     * 通过id删除
-     *
-     * @param id
-     * @return
-     */
-    @PostMapping(value = "/delete")
-    @ApiOperation(value = "会员删除", tags = {"会员接口"}, notes = "会员删除")
-    public Result<User> delete(@RequestParam(name = "id", required = true) String id) {
-        Result<User> result = new Result<User>();
-        User user = userService.getById(id);
 
-        if (user == null) {
-            result.error500("未找到对应实体");
-        } else {
-            boolean ok = userService.removeById(id);
-            if (ok) {
-                result.success("删除成功!");
-            }
-        }
-
-        return result;
-    }
 
     /**
      * 通过id查询
-     *
      * @param id
      * @return
      */
     @GetMapping(value = "/queryById")
-    @ApiOperation(value = "通过id查询会员", tags = {"会员接口"}, notes = "通过id查询会员")
-    public Result<User> queryById(@RequestParam(name = "id", required = true) String id) {
-        Result<User> result = new Result<User>();
+    @ApiOperation(value = "通过id查询用户", tags = {"用户接口"}, notes = "通过id查询用户")
+    public RestResponseBean queryById(@RequestParam(name="id",required=true) String id) {
 
         User user = userService.getById(id);
-        if (user == null) {
-            result.error500("未找到对应实体");
-        } else {
-            result.setResult(user);
-            result.setSuccess(true);
+
+        if(user==null) {
+            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
         }
-        return result;
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
     }
 
+
     /**
-     * 会员注册
-     *
+     * 用户注册
      * @param user
      * @return
      */
     @PostMapping(value = "/register")
-    @ApiOperation(value = "会员注册", tags = {"会员接口"}, notes = "会员注册")
-    public RestResponseBean register(User user) {
-        RestResponseBean RestResponseBean = new RestResponseBean();
+    @ApiOperation(value = "用户注册", tags = {"用户接口"}, notes = "用户注册")
+    public RestResponseBean add(@RequestBody User user) {
 
         try {
 
@@ -202,48 +135,62 @@ public class RestUserController {
             String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
             user.setPassword(passwordEncode);
             userService.save(user);
-            QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("username", user.getUsername());
-            User one = userService.getOne(userQueryWrapper);
-            RestResponseBean.setData(one);
-
+            return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
 
         } catch (Exception e) {
             e.printStackTrace();
             log.info(e.getMessage());
-            RestResponseBean.setMsg(ResultEnum.ERROR.getDesc());
         }
 
-        return RestResponseBean;
+        return new RestResponseBean(ResultEnum.OPERATION_FAIL.getValue(),ResultEnum.OPERATION_FAIL.getDesc(),user);
+
     }
 
+
     /**
-     * 会员修改
-     *
+     * 用户修改
      * @param user
      * @return
      */
-    @PostMapping(value = "/profile")
-    @ApiOperation(value = "会员修改", tags = {"会员接口"}, notes = "会员修改")
-    public RestResponseBean profile(User user) {
-        RestResponseBean RestResponseBean = new RestResponseBean();
+    @PostMapping(value = "/edit")
+    @ApiOperation(value = "用户修改", tags = {"用户接口"}, notes = "用户修改")
+    public RestResponseBean edit(@RequestBody User user) {
 
-        User userEntity = (User) SecurityUtils.getSubject().getPrincipal();
-        if (user.getAvatar() != null || user.getAvatar() != "")
-            userEntity.setAvatar(user.getAvatar());
-        if (user.getUsername() != null || user.getUsername() != "")
-            userEntity.setUsername(user.getUsername());
-        if (user.getNickname() != null || user.getNickname() != "")
-            userEntity.setNickname(user.getNickname());
-        if (user.getBio() != null || user.getBio() != "")
-            userEntity.setBio(user.getBio());
+        User userEntity = userService.getById(user.getId());
 
-        boolean b = userService.updateById(userEntity);
+        if(userEntity==null) {
+            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
+        }else {
+            boolean ok = userService.updateById(user);
 
-        if (b)
-            RestResponseBean.setMsg(ResultEnum.OPERATION_SUCCESS.getDesc());
-        return RestResponseBean;
+            if(!ok) {
+                return new RestResponseBean(ResultEnum.OPERATION_FAIL.getValue(),ResultEnum.OPERATION_FAIL.getDesc(),user);
+            }
+        }
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
     }
+
+    /**
+     *   通过id删除
+     * @param id
+     * @return
+     */
+    @PostMapping(value = "/delete")
+    @ApiOperation(value = "用户删除", tags = {"用户接口"}, notes = "用户删除")
+    public RestResponseBean delete(@RequestParam(name="id",required=true) String id) {
+
+        User user = userService.getById(id);
+
+        if(user==null) {
+            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
+        }
+
+        userService.delMain(id);
+
+        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
+    }
+
 
     /**
      * 根据姓名查找
@@ -267,7 +214,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeEmail")
-    @ApiOperation(value = "修改邮箱", tags = {"会员接口"}, notes = "修改邮箱")
+    @ApiOperation(value = "修改邮箱", tags = {"用户接口"}, notes = "修改邮箱")
     public Result<User> changeEmail(@RequestParam String email, @RequestParam String captcha) {
         Result<User> result = new Result<User>();
         RestResponseBean RestResponseBean = new RestResponseBean();
@@ -298,7 +245,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeMobile")
-    @ApiOperation(value = "修改手机号", tags = {"会员接口"}, notes = "修改手机号")
+    @ApiOperation(value = "修改手机号", tags = {"用户接口"}, notes = "修改手机号")
     public Result<User> changeMobile(@RequestParam String mobile, @RequestParam String captcha) {
         Result<User> result = new Result<User>();
 
@@ -328,7 +275,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/changeResetpwd")
-    @ApiOperation(value = "修改密码", tags = {"会员接口"}, notes = "修改密码")
+    @ApiOperation(value = "修改密码", tags = {"用户接口"}, notes = "修改密码")
     public Result<User> changeResetpwd(@RequestParam String mobile, @RequestParam String captcha, @RequestParam String newpassword) {
         Result<User> result = new Result<User>();
 
@@ -364,13 +311,37 @@ public class RestUserController {
         return result;
     }
 
+    @PostMapping(value = "/login")
+    @ApiOperation(value = "用户登录接口", tags = {"用户接口"}, notes = "用户登录接口")
+    public RestResponseBean login(@RequestParam("username") String username, @RequestParam("password") String password) {
+
+        JSONObject obj = new JSONObject();
+        User user = userService.queryByUsername(username);
+
+        if (user == null) {
+            sysBaseAPI.addLog("登录失败，用户名:" + username + "不存在！", CommonConstant.LOG_TYPE_1, null);
+            return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
+        } else {
+            //密码验证
+            String userpassword = PasswordUtil.encrypt(username, password, user.getSalt());
+            String syspassword = user.getPassword();
+            if (!syspassword.equals(userpassword)) {
+                return new RestResponseBean(ResultEnum.USER_PWD_ERROR.getValue(), ResultEnum.USER_PWD_ERROR.getDesc(), null);
+            }
+            //调用公共方法
+            obj = tokenBuild(user);
+        }
+
+        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), obj);
+    }
+
     /**
      * 退出
      *
      * @return
      */
     @GetMapping("/logOut")
-    @ApiOperation(value = "退出", tags = {"会员接口"}, notes = "退出")
+    @ApiOperation(value = "退出", tags = {"用户接口"}, notes = "退出")
     public Result<User> logOut() {
         Result<User> result = new Result<User>();
         User user = (User) SecurityUtils.getSubject().getPrincipal();
@@ -390,7 +361,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/mobile_login")
-    @ApiOperation(value = "手机验证码登录", tags = {"会员接口"}, notes = "手机验证码登录")
+    @ApiOperation(value = "手机验证码登录", tags = {"用户接口"}, notes = "手机验证码登录")
     public RestResponseBean mobilelogin(@Valid SmsDTO smsDTO, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -421,8 +392,8 @@ public class RestUserController {
      * @param response
      * @throws QQConnectException
      */
-    @GetMapping("/qq_login")
-    @ApiOperation(value = "qq登录", tags = {"会员接口"}, notes = "qq登录")
+    @PostMapping("/qq_login")
+    @ApiOperation(value = "qq登录", tags = {"用户接口"}, notes = "qq登录")
     public void qqlogin(HttpServletRequest request,HttpServletResponse response) {
 
         String mobile = request.getParameter("mobile");
@@ -459,7 +430,7 @@ public class RestUserController {
      * @return
      */
     @PostMapping(value = "/wx_login")
-    @ApiOperation(value = "微信登录", tags = {"会员接口"}, notes = "微信登录")
+    @ApiOperation(value = "微信登录", tags = {"用户接口"}, notes = "微信登录")
     public void wxLogin(HttpServletResponse response, HttpServletRequest request) {
 
         iWxService.wxLogin(response, request);
@@ -487,8 +458,8 @@ public class RestUserController {
      *
      * @return
      */
-    @GetMapping(value = "/wb_login")
-    @ApiOperation(value = "微博登录", tags = {"会员接口"}, notes = "微博登录")
+    @PostMapping(value = "/wb_login")
+    @ApiOperation(value = "微博登录", tags = {"用户接口"}, notes = "微博登录")
     public void wbLogin(HttpServletResponse response, HttpServletRequest request) {
 
         iWbService.login(response,request);
@@ -512,7 +483,7 @@ public class RestUserController {
     }
 
     @PostMapping("/forget_password")
-    @ApiOperation(value = "忘记密码", tags = {"会员接口"}, notes = "忘记密码")
+    @ApiOperation(value = "忘记密码", tags = {"用户接口"}, notes = "忘记密码")
     public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
 
         if(StringUtils.equals(mobile,"")||StringUtils.equals(password,"")){
