@@ -1,9 +1,13 @@
 filterlist:
-  - /api/user/mobile_login
-  - /api/user/qq_login
-  - /api/user/qq_login_callback
-  - /api/user/wx_login
-  - /api/user/wx_login_callBack
-  - /api/user/wb_login
-  - /api/user/wb_login_callback
-  - /api/sms/**
+  - /api/v1/user/delete
+  - /api/v1/user/mobileLogin
+  - /api/v1/user/qq_login_callback
+  - /api/v1/user/wx_login_callBack
+  - /api/v1/user/wb_login_callback
+  - /api/v1/user/register
+  - /api/v1/user/login
+  - /api/v1/user/forgetPassword
+  - /api/v1/user/isExistMobile
+  - /api/v1/sms/**
+  - /api/v1/login/third
+  - /api/v1/validate/**
