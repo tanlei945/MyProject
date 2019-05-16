@@ -3,6 +3,7 @@ package org.benben.modules.business.commen.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.benben.common.api.vo.RestResponseBean;
+import org.benben.modules.business.commen.service.IEmailServe;
 import org.benben.modules.business.commen.service.IValidateService;
 import org.benben.modules.business.user.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
  * 检验接口
  */
 @RestController
-@RequestMapping(value = "/api/validate")
+@RequestMapping(value = "/api/v1/validate")
 @Api(tags = {"检测接口"})
-public class ValidateController {
+public class RestValidateController {
 
     @Autowired
     private IValidateService validateService;
+
+    @Autowired
+    private IEmailServe emailServe;
 
     @GetMapping(value = "/check_email_available")
     @ApiOperation(value = "检测邮箱",tags = {"检测接口"},notes = "检测邮箱")
@@ -120,6 +124,18 @@ public class ValidateController {
             return new RestResponseBean(0, "验证成功", null);
         }else{
             return new RestResponseBean(1, "验证失败", null);
+        }
+    }
+
+
+    @GetMapping("/send")
+    @ApiOperation(value = "发送验证码",tags = {"检测接口"},notes = "发送验证码")
+    public RestResponseBean offerCaptcha(@RequestParam(name = "email")String email, @RequestParam(name = "event")String event) {
+        Boolean aBoolean = emailServe.offerCaptcha(email,event);
+        if(aBoolean){
+            return new RestResponseBean(200, "发送成功", null);
+        }else{
+            return new RestResponseBean(200, "发送失败", null);
         }
     }
 }

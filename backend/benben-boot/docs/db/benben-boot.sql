@@ -2,15 +2,15 @@
 Navicat MySQL Data Transfer
 
 Source Server         : local
-Source Server Version : 50725
+Source Server Version : 50722
 Source Host           : localhost:3306
 Source Database       : benben-boot
 
 Target Server Type    : MYSQL
-Target Server Version : 50725
+Target Server Version : 50722
 File Encoding         : 65001
 
-Date: 2019-04-19 19:39:57
+Date: 2019-05-17 02:29:19
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -1693,6 +1693,7 @@ INSERT INTO sys_log VALUES ('257b91424632b20ee590411cec1a252d', '1', '用户名:
 INSERT INTO sys_log VALUES ('e193fe34571c4f3f883546c0edd5c60b', '1', '用户名: admin,登录成功！', null, null, null, '127.0.0.1', null, null, null, null, null, 'benben-boot', '2019-04-19 18:57:32', null, null);
 INSERT INTO sys_log VALUES ('3f19b3d6cef608895feb6943ec9b7187', '1', '用户名: 管理员,退出成功！', null, 'admin', '管理员', '127.0.0.1', null, null, null, null, null, 'admin', '2019-04-19 18:57:38', null, null);
 INSERT INTO sys_log VALUES ('0ba9821f5dad201dca56940b7d422ed2', '1', '用户名: admin,登录成功！', null, null, null, '127.0.0.1', null, null, null, null, null, 'benben-boot', '2019-04-19 18:57:42', null, null);
+INSERT INTO sys_log VALUES ('581458542040566b86b28df9e9726bf4', '1', '手机号: 17513155693,登录成功！', null, null, null, '0:0:0:0:0:0:0:1', null, null, null, null, null, 'benben-boot', '2019-05-17 02:28:38', null, null);
 
 -- ----------------------------
 -- Table structure for `sys_permission`
@@ -2422,51 +2423,68 @@ INSERT INTO sys_user_role VALUES ('d2233e5be091d39da5abb0073c766224', 'f0019fdeb
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` varchar(32) NOT NULL COMMENT 'ID',
-  `group_id` varchar(32) NOT NULL DEFAULT '' COMMENT '组别ID',
-  `username` varchar(32) NOT NULL DEFAULT '' COMMENT '用户名',
-  `realname` varchar(32) NOT NULL DEFAULT '' COMMENT '真实姓名',
-  `nickname` varchar(50) NOT NULL DEFAULT '' COMMENT '昵称',
-  `password` varchar(32) NOT NULL DEFAULT '' COMMENT '密码',
-  `salt` varchar(30) NOT NULL DEFAULT '' COMMENT '密码盐',
-  `email` varchar(100) NOT NULL DEFAULT '' COMMENT '电子邮箱',
-  `mobile` varchar(11) NOT NULL DEFAULT '' COMMENT '手机号',
-  `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT '头像',
-  `level` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
-  `sex` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '性别  0/男,1/女',
+  `group_id` varchar(32) DEFAULT NULL COMMENT '组别ID',
+  `username` varchar(32) DEFAULT NULL COMMENT '用户名',
+  `realname` varchar(32) DEFAULT NULL COMMENT '真实姓名',
+  `nickname` varchar(50) DEFAULT NULL COMMENT '昵称',
+  `age` varchar(3) DEFAULT NULL,
+  `password` varchar(32) DEFAULT NULL COMMENT '密码',
+  `salt` varchar(30) DEFAULT NULL COMMENT '密码盐',
+  `user_type` varchar(1) NOT NULL DEFAULT '0' COMMENT '用户类型  0/普通用户,1/骑手',
+  `email` varchar(100) DEFAULT NULL COMMENT '电子邮箱',
+  `mobile` varchar(11) DEFAULT NULL COMMENT '手机号',
+  `avatar` varchar(255) DEFAULT NULL COMMENT '头像',
+  `user_level` tinyint(1) NOT NULL DEFAULT '0' COMMENT '等级',
+  `sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别  0/男,1/女',
   `birthday` datetime DEFAULT NULL COMMENT '生日',
-  `bio` varchar(100) NOT NULL DEFAULT '' COMMENT '格言',
-  `money` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '余额',
-  `score` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '积分',
-  `success_ions` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '连续登录天数',
-  `maxsuccess_ions` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '最大连续登录天数',
-  `prev_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上次登录时间',
-  `login_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '登录时间',
-  `loginip` varchar(50) NOT NULL DEFAULT '' COMMENT '登录IP',
-  `loginfailure` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '失败次数',
-  `joinip` varchar(50) NOT NULL DEFAULT '' COMMENT '加入IP',
+  `bio` varchar(100) DEFAULT NULL COMMENT '格言',
+  `user_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '余额',
+  `score` int(10) NOT NULL DEFAULT '0' COMMENT '积分',
+  `success_ions` int(10) NOT NULL DEFAULT '1' COMMENT '连续登录天数',
+  `maxsuccess_ions` int(10) NOT NULL DEFAULT '1' COMMENT '最大连续登录天数',
+  `prev_time` int(10) NOT NULL DEFAULT '0' COMMENT '上次登录时间',
+  `login_time` datetime DEFAULT NULL COMMENT '登录时间',
+  `loginip` varchar(50) DEFAULT NULL COMMENT '登录IP',
+  `loginfailure` tinyint(1) DEFAULT '0' COMMENT '失败次数',
+  `joinip` varchar(50) DEFAULT NULL COMMENT '加入IP',
   `join_time` datetime DEFAULT NULL COMMENT '加入时间',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   `create_by` varchar(32) DEFAULT NULL COMMENT '创建人',
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `update_by` varchar(32) DEFAULT NULL COMMENT '编辑人',
-  `token` varchar(50) NOT NULL DEFAULT '' COMMENT 'Token',
-  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(1：正常  2：冻结 ）',
-  `del_flag` varchar(1) NOT NULL DEFAULT '' COMMENT '删除状态（0，正常，1已删除）',
-  `verification` varchar(255) NOT NULL DEFAULT '' COMMENT '验证',
-  `user_id` varchar(32) NOT NULL DEFAULT '',
-  `expiretime` int(10) DEFAULT NULL,
-  `expires_in` int(10) DEFAULT NULL,
-  `qq_id` varchar(50) DEFAULT NULL,
-  `wx_id` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `username` (`username`),
-  KEY `email` (`email`),
-  KEY `mobile` (`mobile`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='会员表';
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态(1：正常  2：冻结 ）',
+  `del_flag` varchar(1) NOT NULL DEFAULT '0' COMMENT '删除状态  0/正常,1/已删除',
+  `inviter_id` varchar(32) DEFAULT NULL COMMENT '邀请人',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='会员表';
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO user VALUES ('04c8aa8245259b637eb4bb9a9be226ed', '', '星空', '', '', '31f98dfecc7d4708', 'KJ9KiICR', '15678451398@126.com', '15678451398', '', '0', '2', null, '', '0.00', '0', '1', '1', '0', '0', '', '0', '', null, '2019-04-09 17:52:04', null, null, null, '', '1', '', '', '', null, null, null, null);
-INSERT INTO user VALUES ('32d4e630098f44bedb32693eb546c71a', '', '王昊', '王浩浩', '王浩浩', 'a9eb881a116aa93e', 'OFIY29d5', '12356887452@126.com', '18903820762', 'http://jeecg-boot.oss-cn-beijing.aliyuncs.com/1554793078543.jpg', '0', '1', '2019-04-18 14:58:07', '切格瓦拉', '0.00', '0', '1', '1', '0', '0', '', '0', '', null, '2019-04-09 14:58:18', 'admin', '2019-04-09 15:58:04', 'admin', '', '1', '', '', '', null, null, 'DC4FC0FC9BD4A56A4A9CAF354A898D2C', 'o11J61NnwFK0D5rCnEjVT_tAoiBY');
-INSERT INTO user VALUES ('efad51d21a33a54dab91019a47e478c7', '', '凉凉', '凉', '凉的很', '123456', '', '895992822@qq.com', '15938372251', 'http://jeecg-boot.oss-cn-beijing.aliyuncs.com/1555585185537.jpg', '0', '1', null, '格言格言格言', '0.00', '0', '1', '1', '0', '0', '', '0', '', null, '2019-04-18 18:58:12', 'admin', '2019-04-18 18:59:48', 'admin', '', '1', '', '', '', null, null, null, null);
+INSERT INTO user VALUES ('2af238e5a59c42c9785490d1c0d086b0', null, 'zhangsan', '张三', null, '27', 'd020f1d0672898ca74d7819cecad7574', 'xsDxfFzV', '1', null, '15899999999', null, '0', '0', null, null, '0.00', '0', '1', '1', '0', null, null, '0', null, null, '2019-04-26 01:14:09', 'benben-boot', '2019-04-26 01:48:14', null, '1', '0', null);
+INSERT INTO user VALUES ('8df2105efb89779591ee8891df084b9a', null, null, null, null, null, 'c364ac9388b31bb1d5bc5ac96c2cdb6b', 'bjOGpvc6', '0', null, '13271100911', null, '0', '0', null, null, '0.00', '0', '1', '1', '0', null, null, '0', null, null, '2019-04-26 01:27:33', 'benben-boot', '2019-04-26 01:27:41', 'benben-boot', '1', '0', null);
+INSERT INTO user VALUES ('b3aab68d9d03fee89f97cfa2b627bf21', null, 'lufei', '路飞', '路飞', '', '123456', null, '0', '895992822@qq.com', '15938372251', 'http://jeecg-boot.oss-cn-beijing.aliyuncs.com/1555932223356.jpg', '0', '1', null, '11111111111', '0.00', '0', '1', '1', '0', null, null, '0', null, null, '2019-04-22 19:23:50', 'admin', null, null, '1', '0', null);
+INSERT INTO user VALUES ('e33e047cd3c16460cee94e4169fac126', null, 'suolong', '索隆', 'suolong', '', '74eb394ea087018e83d7dfc9539be14f', 'kMJOVxTz', '0', '895992888@qq.com', '17513155693', 'http://jeecg-boot.oss-cn-beijing.aliyuncs.com/1555934462141.jpg', '0', '1', '1993-02-17 20:01:04', '1111111111111', '0.00', '0', '1', '1', '0', null, null, '0', null, null, '2019-04-22 20:01:24', 'admin', null, null, '1', '0', null);
+
+-- ----------------------------
+-- Table structure for `user_third`
+-- ----------------------------
+DROP TABLE IF EXISTS `user_third`;
+CREATE TABLE `user_third` (
+  `id` varchar(32) NOT NULL,
+  `user_id` varchar(32) DEFAULT NULL COMMENT '用户ID',
+  `openid` varchar(32) DEFAULT NULL COMMENT 'QQ_OpenId',
+  `type` varchar(1) NOT NULL DEFAULT '0' COMMENT '类型  0/QQ,1/微信,2/微博',
+  `status` varchar(1) NOT NULL DEFAULT '0' COMMENT '状态  0/启用,1/未启用,2/已删除',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `create_by` varchar(32) DEFAULT NULL COMMENT '创建人',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `update_by` varchar(32) DEFAULT NULL COMMENT '编辑人',
+  PRIMARY KEY (`id`),
+  KEY `trilateral_user_ibfk_1` (`user_id`),
+  CONSTRAINT `trilateral_user_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user_third
+-- ----------------------------

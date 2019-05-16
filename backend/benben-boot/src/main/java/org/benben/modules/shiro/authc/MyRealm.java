@@ -125,9 +125,8 @@ public class MyRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken auth) throws AuthenticationException {
 
-        String password = "";
-        int status = 0;
-        int number = 0;
+        String password,sign;
+        int status,number =0;
         SysUser sysUser = new SysUser();
         User userInfo = new User();
 
@@ -137,38 +136,31 @@ public class MyRealm extends AuthorizingRealm {
             throw new AuthenticationException("token为空!");
         }
 
-        // 解密获得username，用于和数据库进行对比
+        // 解密获得username，用于后台和数据库进行对比
         String username = JwtUtil.getUsername(token);
-        //获取标识
-        String sign = username.substring(0, username.indexOf("@") + 1);
-        username = username.substring(username.indexOf("@") + 1, username.length());
-
-        if (username == null) {
-            throw new AuthenticationException("token非法无效!");
-        }
-
-        //系统用户登陆
-        if (StringUtils.equals(CommonConstant.SIGN_SYS_USER, sign)) {
-
+        // 解密获得mobile，用于IP端和数据库进行对比
+        String mobile = JwtUtil.getMobile(token);
+        //判断是后台用户访问还是APP用户访问
+        if(username != null){
+            //获取标识
+            sign = username.substring(0, username.indexOf("@") + 1);
+            username = username.substring(username.indexOf("@") + 1, username.length());
             // 查询用户信息
             sysUser = sysUserService.getUserByName(username);
             password = sysUser.getPassword();
             status = sysUser.getStatus();
-            if (sysUser == null) {
-                throw new AuthenticationException("用户不存在!");
-            }
-        }
 
-        // 会员用户登录
-        if (StringUtils.equals(CommonConstant.SIGN_MEMBER_USER, sign)) {
-
-            userInfo = userService.queryByUsername(username);
+        }else if(mobile !=null){
+            //获取标识
+            sign = mobile.substring(0, mobile.indexOf("@") + 1);
+            mobile = mobile.substring(mobile.indexOf("@") + 1, mobile.length());
+            //查询会员信息
+            userInfo = userService.queryByMobile(mobile);
             password = userInfo.getPassword();
             status = userInfo.getStatus();
-            if (userInfo == null) {
-                throw new AuthenticationException("用户不存在!");
-            }
             number = 1;
+        } else{
+            throw new AuthenticationException("token非法无效!");
         }
 
         //校验token是否超时失效 & 或者账号密码是否错误

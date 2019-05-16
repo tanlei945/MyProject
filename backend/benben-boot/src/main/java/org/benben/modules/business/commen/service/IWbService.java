@@ -12,7 +12,9 @@ import java.util.Map;
 */
 public interface IWbService {
 
-    public void login(HttpServletResponse response, HttpServletRequest request);
+    public void login(String mobile, HttpServletResponse response);
 
     public String callBack(HttpServletRequest request);
+
+    //    public String callBack(String code);
 }
