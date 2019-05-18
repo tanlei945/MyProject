@@ -80,7 +80,7 @@ public class UserController {
 		try {
 			String salt = oConvertUtils.randomGen(8);
 			user.setSalt(salt);
-			String passwordEncode = PasswordUtil.encrypt(user.getUsername(), user.getPassword(), salt);
+			String passwordEncode = PasswordUtil.encrypt(user.getMobile(), user.getPassword(), salt);
 			user.setPassword(passwordEncode);
 			userService.save(user);
 			result.success("添加成功！");
