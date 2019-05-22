@@ -4,7 +4,7 @@ filterlist:
   - /api/v1/user/qq_login_callback
   - /api/v1/user/wx_login_callBack
   - /api/v1/user/wb_login_callback
-  - /api/v1/user/register
+  - /api/v1/user/userRegister
   - /api/v1/user/login
   - /api/v1/user/forgetPassword
   - /api/v1/user/isExistMobile

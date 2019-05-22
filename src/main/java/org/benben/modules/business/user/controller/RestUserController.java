@@ -29,7 +29,9 @@ import org.benben.modules.business.user.entity.User;
 import org.benben.modules.business.user.entity.UserThird;
 import org.benben.modules.business.user.service.IUserService;
 import org.benben.modules.business.user.service.IUserThirdService;
+import org.benben.modules.business.user.vo.UserVo;
 import org.benben.modules.shiro.authc.util.JwtUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -73,286 +75,281 @@ public class RestUserController {
     private IQqService iQqService;
 
     @Autowired
-    private ICommonService commonService;
-
-    @Autowired
     private RedisUtil redisUtil;
 
 
 
-    /**
-     * 通过id查询
-     * @param id
-     * @return
-     */
-    @GetMapping(value = "/queryById")
-    @ApiOperation(value = "通过id查询用户", tags = {"用户接口"}, notes = "通过id查询用户")
-    public RestResponseBean queryById(@RequestParam(name="id",required=true) String id) {
+	/**
+	 * 用户详情
+	 * @return
+	 */
+	@GetMapping(value = "/queryUserById")
+	@ApiOperation(value = "用户详情", tags = {"用户接口"}, notes = "用户详情")
+	public RestResponseBean queryUserById() {
 
-        User user = userService.getById(id);
+		User user = (User) SecurityUtils.getSubject().getPrincipal();
 
-        if(user==null) {
-            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
-        }
+		if(user==null) {
+			return new RestResponseBean(ResultEnum.TOKEN_OVERDUE.getValue(),ResultEnum.TOKEN_OVERDUE.getDesc(),null);
+		}
 
-        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
-    }
+		UserVo userVo = userService.queryUserVo(user);
+		if(userVo == null){
+			return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+		}
 
-
-    /**
-     * 用户注册
-     * @param mobile
-     * @param password
-     * @return
-     */
-    @PostMapping(value = "/register")
-    @ApiOperation(value = "用户注册", tags = {"用户接口"}, notes = "用户注册")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean register(@RequestParam String mobile, @RequestParam String password) {
-
-        User user = new User();
-
-        if(org.apache.commons.lang3.StringUtils.equals(mobile,"")|| org.apache.commons.lang3.StringUtils.equals(password,"")){
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
-        }
-
-        try {
-            //保存用户信息
-            user.setMobile(mobile);
-            String salt = oConvertUtils.randomGen(8);
-            user.setSalt(salt);
-            String passwordEncode = PasswordUtil.encrypt(mobile, password, salt);
-            user.setPassword(passwordEncode);
-            userService.save(user);
-            return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info(e.getMessage());
-        }
-
-        return new RestResponseBean(ResultEnum.OPERATION_FAIL.getValue(),ResultEnum.OPERATION_FAIL.getDesc(),null);
-
-    }
-
-    /**
-     * 账户密码登录
-     * @param mobile
-     * @param password
-     * @return
-     */
-    @PostMapping(value = "/login")
-    @ApiOperation(value = "账户密码登录", tags = {"用户接口"}, notes = "账户密码登录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean login(@RequestParam String mobile, @RequestParam String password) {
-
-        JSONObject obj = new JSONObject();
-        User user = userService.queryByMobile(mobile);
-
-        if (user == null) {
-            sysBaseAPI.addLog("登录失败，用户名:" + mobile + "不存在！", CommonConstant.LOG_TYPE_1, null);
-            return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
-        } else {
-            //密码验证
-            String userpassword = PasswordUtil.encrypt(mobile, password, user.getSalt());
-            String syspassword = user.getPassword();
-            if (!syspassword.equals(userpassword)) {
-                return new RestResponseBean(ResultEnum.USER_PWD_ERROR.getValue(), ResultEnum.USER_PWD_ERROR.getDesc(), null);
-            }
-            //调用公共方法
-            obj = tokenBuild(user);
-        }
-
-        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(), ResultEnum.OPERATION_SUCCESS.getDesc(), obj);
-    }
-
-
-    /**
-     * 短信登录
-     *
-     * @param smsDTO
-     * @param bindingResult
-     * @return
-     */
-    @PostMapping(value = "/mobileLogin")
-    @ApiOperation(value = "手机验证码登录", tags = {"用户接口"}, notes = "手机验证码登录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean mobilelogin(@RequestBody @Valid SmsDTO smsDTO, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors() && org.apache.commons.lang3.StringUtils.isBlank(smsDTO.getCaptcha())) {
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
-        }
-
-        switch (ismsService.check(smsDTO.getMobile(), smsDTO.getEvent(), smsDTO.getCaptcha())) {
-            case 1:
-                return new RestResponseBean(ResultEnum.SMS_CODE_OVERTIME.getValue(), ResultEnum.SMS_CODE_OVERTIME.getDesc(), null);
-            case 2:
-                return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(), ResultEnum.SMS_CODE_ERROR.getDesc(), null);
-        }
-
-        User user = userService.queryByMobile(smsDTO.getMobile());
-
-        if (user == null) {
-            return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
-        }
-
-        return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
-    }
-
-    /**
-     * 用户修改
-     * @param user
-     * @return
-     */
-    @PostMapping(value = "/edit")
-    @ApiOperation(value = "用户修改", tags = {"用户接口"}, notes = "用户修改")
-    public RestResponseBean edit(@RequestBody User user) {
-
-        User userEntity = userService.getById(user.getId());
-
-        if(userEntity==null) {
-            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
-        }else {
-
-            if(org.apache.commons.lang3.StringUtils.isNotBlank(user.getMobile())&& org.apache.commons.lang3.StringUtils.isNotBlank(user.getPassword())){
-                String salt = oConvertUtils.randomGen(8);
-                user.setSalt(salt);
-                String passwordEncode = PasswordUtil.encrypt(user.getMobile(), user.getPassword(), salt);
-                user.setPassword(passwordEncode);
-            }
-
-            boolean ok = userService.updateById(user);
-
-            if(ok) {
-                return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),user);
-            }
-        }
-
-        return new RestResponseBean(ResultEnum.OPERATION_FAIL.getValue(),ResultEnum.OPERATION_FAIL.getDesc(),user);
-    }
+		return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),userVo);
+	}
 
 
 
-    @PostMapping(value = "/updateAvatar")
-    @ApiOperation(value = "修改头像", tags = {"用户接口"}, notes = "修改头像")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId",value = "用户的ID",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "file",value = "待上传图片",dataType = "MultipartFile",required = true)
-    })
-    public RestResponseBean changeAvatar(@RequestParam String userId,@RequestParam(value = "file") MultipartFile file){
+	/**
+	 * 用户注册
+	 * @param mobile
+	 * @param password
+	 * @return
+	 */
+	@PostMapping(value = "/userRegister")
+	@ApiOperation(value = "用户注册", tags = {"用户接口"}, notes = "用户注册")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
+			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+	})
+	public RestResponseBean userRegister(@RequestParam String mobile, @RequestParam String password) {
 
-        if(org.apache.commons.lang3.StringUtils.isBlank(userId) || org.apache.commons.lang3.StringUtils.isBlank(file.getOriginalFilename())){
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
-        }
 
-        User user = userService.getById(userId);
-        if(user == null){
-            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.desc(),null);
-        }
+		if(org.apache.commons.lang3.StringUtils.equals(mobile,"")|| org.apache.commons.lang3.StringUtils
+				.equals(password,"")){
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
+		}
 
-        String avatar = commonService.localUploadImage(file);
-        user.setAvatar(avatar);
+		User userEntity = userService.queryByMobile(mobile);
+		if(userEntity != null){
+			return new RestResponseBean(ResultEnum.MOBILE_EXIST_REGISTER.getValue(),ResultEnum.MOBILE_EXIST_REGISTER.getDesc(),null);
+		}
 
-        if(userService.updateById(user)){
+		try {
 
-            return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
-        }
+			User user = userService.userRegister(mobile, password);
 
-        return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
-    }
+			return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),tokenBuild(user));
 
-    @PostMapping(value = "/updateUsername")
-    @ApiOperation(value = "修改用户名", tags = {"用户接口"}, notes = "修改用户名")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId",value = "用户的ID",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "username",value = "用户名",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean changeUsername(@RequestParam String userId,@RequestParam String username){
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.info(e.getMessage());
+			return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+		}
 
-        if(org.apache.commons.lang3.StringUtils.isBlank(userId) || org.apache.commons.lang3.StringUtils.isBlank(username)){
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
-        }
+	}
 
-        User user = userService.getById(userId);
-        if(user == null){
-            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.desc(),null);
-        }
-        user.setUsername(username);
+	/**
+	 * 账户密码登录
+	 * @param mobile
+	 * @param password
+	 * @return
+	 */
+	@PostMapping(value = "/login")
+	@ApiOperation(value = "账户密码登录", tags = {"用户接口"}, notes = "账户密码登录")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
+			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+	})
+	public RestResponseBean login(@RequestParam String mobile, @RequestParam String password) {
 
-        if(userService.updateById(user)){
+		JSONObject obj = new JSONObject();
+		User user = userService.queryByMobile(mobile);
 
-            return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
-        }
+		if (user == null) {
+			sysBaseAPI.addLog("登录失败，用户名:" + mobile + "不存在！", CommonConstant.LOG_TYPE_1, null);
+			return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
+		} else {
+			//密码验证
+			String userpassword = PasswordUtil.encrypt(password, password, user.getSalt());
+			String syspassword = user.getPassword();
+			if (!syspassword.equals(userpassword)) {
+				return new RestResponseBean(ResultEnum.USER_PWD_ERROR.getValue(), ResultEnum.USER_PWD_ERROR.getDesc(), null);
+			}
+			//调用公共方法
+			obj = tokenBuild(user);
+		}
 
-        return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
-    }
+		return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(), ResultEnum.OPERATION_SUCCESS.getDesc(), obj);
+	}
 
-    /**
-     * 修改手机号
-     * @param userId
-     * @param mobile
-     * @return
-     */
-    @PostMapping(value = "/updateMobile")
-    @ApiOperation(value = "修改手机号", tags = {"用户接口"}, notes = "修改手机号")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId",value = "用户的ID",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean changeMobile(@RequestParam String userId,@RequestParam String mobile,@RequestParam String password) {
 
-        if(org.apache.commons.lang3.StringUtils.isBlank(userId) || org.apache.commons.lang3.StringUtils.isBlank(mobile)){
+	/**
+	 * 短信登录
+	 *
+	 * @param smsDTO
+	 * @param bindingResult
+	 * @return
+	 */
+	@PostMapping(value = "/mobileLogin")
+	@ApiOperation(value = "手机验证码登录", tags = {"用户接口"}, notes = "手机验证码登录")
+	public RestResponseBean mobilelogin(@RequestBody @Valid SmsDTO smsDTO, BindingResult bindingResult) {
 
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.desc(),null);
-        }
+		if (bindingResult.hasErrors() && StringUtils.isBlank(smsDTO.getCaptcha())) {
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+		}
 
-        User user = userService.getById(userId);
-        if(user == null){
-            return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.desc(),null);
-        }
-        user.setMobile(mobile);
-        //TODO 密码生成依据手机号，修改手机号 ，必须重新设置密码
-        String salt = oConvertUtils.randomGen(8);
-        user.setSalt(salt);
-        String passwordEncode = PasswordUtil.encrypt(mobile, password, salt);
-        user.setPassword(passwordEncode);
+		switch (ismsService.check(smsDTO.getMobile(), smsDTO.getEvent(), smsDTO.getCaptcha())) {
+			case 1:
+				return new RestResponseBean(ResultEnum.SMS_CODE_OVERTIME.getValue(), ResultEnum.SMS_CODE_OVERTIME.getDesc(), null);
+			case 2:
+				return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(), ResultEnum.SMS_CODE_ERROR.getDesc(), null);
+		}
 
-        if(userService.updateById(user)){
+		User user = userService.queryByMobile(smsDTO.getMobile());
 
-            return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
-        }
+		if (user == null) {
+			return new RestResponseBean(ResultEnum.USER_NOT_EXIST.getValue(), ResultEnum.USER_NOT_EXIST.getDesc(), null);
+		}
 
-        return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
-    }
+		return new RestResponseBean(ResultEnum.LOGIN_SUCCESS.getValue(), ResultEnum.LOGIN_SUCCESS.getDesc(), tokenBuild(user));
+	}
 
-    @PostMapping(value = "/forgetPassword")
-    @ApiOperation(value = "忘记密码/修改密码", tags = {"用户接口"}, notes = "忘记密码/修改密码")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",defaultValue = "1",required = true),
-            @ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",defaultValue = "1",required = true)
-    })
-    public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
+	/**
+	 * 用户修改
+	 * @param userVo
+	 * @return
+	 */
+	@PostMapping(value = "/editUser")
+	@ApiOperation(value = "用户修改", tags = {"用户接口"}, notes = "用户修改")
+	public RestResponseBean editUser(@RequestBody UserVo userVo) {
 
-        if(org.apache.commons.lang3.StringUtils.equals(mobile,"")|| org.apache.commons.lang3.StringUtils.equals(password,"")){
-            return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
-        }
+		User user = (User) SecurityUtils.getSubject().getPrincipal();
 
-        if(userService.forgetPassword(mobile,password) == 0){
-            return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
-        }
+		if(user==null) {
+			return new RestResponseBean(ResultEnum.TOKEN_OVERDUE.getValue(),ResultEnum.TOKEN_OVERDUE.getDesc(),null);
+		}
 
-        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
-    }
+		User userEntity = userService.getById(user.getId());
+
+		BeanUtils.copyProperties(userVo,userEntity);
+
+		if(userEntity==null) {
+			return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.getDesc(),null);
+		}else {
+
+			boolean ok = userService.updateById(userEntity);
+
+			if(!ok) {
+				return new RestResponseBean(ResultEnum.OPERATION_FAIL.getValue(),ResultEnum.OPERATION_FAIL.getDesc(),null);
+			}
+		}
+
+		return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
+	}
+
+
+
+	@PostMapping(value = "/updateAvatar")
+	@ApiOperation(value = "修改头像", tags = {"用户接口"}, notes = "修改头像")
+	@ApiImplicitParam(name = "avatar",value = "头像图片",dataType = "String",required = true)
+	public RestResponseBean changeAvatar(@RequestParam String avatar){
+
+		User user = (User) SecurityUtils.getSubject().getPrincipal();
+
+		if(user==null) {
+			return new RestResponseBean(ResultEnum.TOKEN_OVERDUE.getValue(),ResultEnum.TOKEN_OVERDUE.getDesc(),null);
+		}
+
+		User userEntity = userService.getById(user.getId());
+
+		userEntity.setAvatar(avatar);
+
+		if(userService.updateById(userEntity)){
+
+			return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
+		}
+
+		return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+	}
+
+	@PostMapping(value = "/updateUsername")
+	@ApiOperation(value = "修改用户名", tags = {"用户接口"}, notes = "修改用户名")
+	@ApiImplicitParam(name = "username",value = "用户名",dataType = "String",defaultValue = "1",required = true)
+	public RestResponseBean changeUsername(@RequestParam String username){
+
+		User user = (User) SecurityUtils.getSubject().getPrincipal();
+
+		if(user==null) {
+			return new RestResponseBean(ResultEnum.TOKEN_OVERDUE.getValue(),ResultEnum.TOKEN_OVERDUE.getDesc(),null);
+		}
+
+		if(org.apache.commons.lang3.StringUtils.isBlank(username)){
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
+		}
+
+		User userEntity = userService.getById(user.getId());
+		if(userEntity == null){
+			return new RestResponseBean(ResultEnum.QUERY_NOT_EXIST.getValue(),ResultEnum.QUERY_NOT_EXIST.desc(),null);
+		}
+		userEntity.setUsername(username);
+
+		if(userService.updateById(userEntity)){
+
+			return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
+		}
+
+		return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+	}
+
+	/**
+	 * 修改手机号
+	 * @param mobile
+	 * @return
+	 */
+	@PostMapping(value = "/updateMobile")
+	@ApiOperation(value = "修改手机号", tags = {"用户接口"}, notes = "修改手机号")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
+			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+	})
+	public RestResponseBean changeMobile(@RequestParam String mobile,@RequestParam String password) {
+
+		User user = (User) SecurityUtils.getSubject().getPrincipal();
+
+		if(user==null) {
+			return new RestResponseBean(ResultEnum.TOKEN_OVERDUE.getValue(),ResultEnum.TOKEN_OVERDUE.getDesc(),null);
+		}
+
+		if(org.apache.commons.lang3.StringUtils.isBlank(mobile)){
+
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.desc(),null);
+		}
+
+		User userEntity = userService.getById(user.getId());
+
+		userEntity.setMobile(mobile);
+
+		if(userService.updateById(userEntity)){
+
+			return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.desc(),null);
+		}
+
+		return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+	}
+
+	@PostMapping(value = "/forgetPassword")
+	@ApiOperation(value = "忘记密码/修改密码", tags = {"用户接口"}, notes = "忘记密码/修改密码")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
+			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+	})
+	public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
+
+		if(StringUtils.equals(mobile,"")|| StringUtils
+				.equals(password,"")){
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+		}
+
+		if(userService.forgetPassword(mobile,password) == 0){
+			return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
+		}
+
+		return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
+	}
 
     /**
      *   通过id删除
@@ -390,23 +387,23 @@ public class RestUserController {
     }
 
 
-    /**
-     * 退出
-     *
-     * @return
-     */
-    @GetMapping("/logOut")
-    @ApiOperation(value = "退出", tags = {"用户接口"}, notes = "退出")
-    public RestResponseBean logOut() {
-
-        User user = (User) SecurityUtils.getSubject().getPrincipal();
-        String token = JwtUtil.sign(CommonConstant.SIGN_MEMBER_USER + user.getMobile(), user.getPassword());
-        redisUtil.del(CommonConstant.PREFIX_USER_TOKEN + token);
-        Subject subject = SecurityUtils.getSubject();
-        subject.logout();
-
-        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
-    }
+//    /**
+//     * 退出
+//     *
+//     * @return
+//     */
+//    @GetMapping("/logOut")
+//    @ApiOperation(value = "退出", tags = {"用户接口"}, notes = "退出")
+//    public RestResponseBean logOut() {
+//
+//        User user = (User) SecurityUtils.getSubject().getPrincipal();
+//        String token = JwtUtil.sign(CommonConstant.SIGN_MEMBER_USER + user.getMobile(), user.getPassword());
+//        redisUtil.del(CommonConstant.PREFIX_USER_TOKEN + token);
+//        Subject subject = SecurityUtils.getSubject();
+//        subject.logout();
+//
+//        return new RestResponseBean(ResultEnum.OPERATION_SUCCESS.getValue(),ResultEnum.OPERATION_SUCCESS.getDesc(),null);
+//    }
 
 
     /**
@@ -461,6 +458,7 @@ public class RestUserController {
 
     @GetMapping(value = "isExistMobile")
     @ApiOperation(value = "手机号是否已被注册",tags = {"用户接口"},notes = "手机号是否已被注册")
+	@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true)
     public RestResponseBean isExistMobile(String mobile){
 
         User user = userService.queryByMobile(mobile);
@@ -535,28 +533,28 @@ public class RestUserController {
         return new RestResponseBean(ResultEnum.REPEATED_BINDING.getValue(), ResultEnum.REPEATED_BINDING.getDesc(), null);
     }
 
-    /**
-     * 公共方法,三方登录返回信息token
-     *
-     * @param user 根据传参查询到的实体
-     * @return
-     */
-    private JSONObject tokenBuild(User user) {
+	/**
+	 * 公共方法,三方登录返回信息token
+	 *
+	 * @param user 根据传参查询到的实体
+	 * @return
+	 */
+	private JSONObject tokenBuild(User user) {
 
-        JSONObject obj = new JSONObject();
-        //生成token
-        String token = JwtUtil.signUser(CommonConstant.SIGN_MEMBER_USER + user.getMobile(), user.getPassword());
-        redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, token);
-        //设置超时时间
-        redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
+		JSONObject obj = new JSONObject();
+		//生成token
+		String token = JwtUtil.signUser(CommonConstant.SIGN_MEMBER_USER + user.getMobile(), user.getPassword());
+		redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, token);
+		//设置超时时间
+		redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
 
-        obj.put("token", token);
-        obj.put("user", user);
+		obj.put("token", token);
+		obj.put("user", userService.queryUserVo(user));
 
-        sysBaseAPI.addLog("手机号: " + user.getMobile() + ",登录成功！", CommonConstant.LOG_TYPE_1, null);
+		sysBaseAPI.addLog("手机号: " + user.getMobile() + ",登录成功！", CommonConstant.LOG_TYPE_1, null);
 
-        return obj;
-    }
+		return obj;
+	}
 
     /**
      * 三方登录(后端调起授权)
