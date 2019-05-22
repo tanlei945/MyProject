@@ -2,6 +2,7 @@ package org.benben.modules.business.user.service;
 
 import org.benben.modules.business.user.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.benben.modules.business.user.vo.UserVo;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -43,5 +44,9 @@ public interface IUserService extends IService<User> {
 	public int bindingThird(String openId , String userId, String type);
 
 	public int forgetPassword(String mobile, String password);
+
+	UserVo queryUserVo(User user);
+
+	User userRegister(String mobile,String password);
 
 }

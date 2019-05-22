@@ -10,6 +10,8 @@ import org.benben.modules.business.user.entity.UserThird;
 import org.benben.modules.business.user.mapper.UserThirdMapper;
 import org.benben.modules.business.user.mapper.UserMapper;
 import org.benben.modules.business.user.service.IUserService;
+import org.benben.modules.business.user.vo.UserVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @Description: 普通用户
@@ -136,6 +139,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setPassword(passwordEncode);
 
 		return userMapper.updateById(user);
+	}
+
+	/**
+	 * 用户详情
+	 * @param user
+	 * @return
+	 */
+	@Override
+	public UserVo queryUserVo(User user) {
+
+		UserVo userVo = new UserVo();
+
+		BeanUtils.copyProperties(user,userVo);
+
+		return userVo;
+	}
+
+	/**
+	 * 用户注册
+	 * @param mobile
+	 * @param password
+	 * @return
+	 */
+	@Override
+	@Transactional
+	public User userRegister(String mobile, String password) {
+
+		User user = new User();
+
+		//保存用户信息
+		user.setMobile(mobile);
+		String salt = oConvertUtils.randomGen(8);
+		user.setSalt(salt);
+		String passwordEncode = PasswordUtil.encrypt(password, password, salt);
+		user.setPassword(passwordEncode);
+		userMapper.insert(user);
+
+		return user;
 	}
 
 
