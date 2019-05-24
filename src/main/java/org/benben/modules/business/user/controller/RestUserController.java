@@ -123,6 +123,10 @@ public class RestUserController {
 			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
 		}
 
+		if(!StringUtils.equals(CommonConstant.SMS_EVENT_REGISTER,event)){
+			return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(),ResultEnum.SMS_CODE_ERROR.getDesc(),null);
+		}
+
 		try {
 
 			switch (ismsService.check(mobile, event, captcha)) {
@@ -197,6 +201,10 @@ public class RestUserController {
 
 		if (bindingResult.hasErrors() && StringUtils.isBlank(smsDTO.getCaptcha())) {
 			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+		}
+
+		if(!StringUtils.equals(CommonConstant.SMS_EVENT_LOGIN,smsDTO.getEvent())){
+			return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(),ResultEnum.SMS_CODE_ERROR.getDesc(),null);
 		}
 
 		switch (ismsService.check(smsDTO.getMobile(), smsDTO.getEvent(), smsDTO.getCaptcha())) {
@@ -348,6 +356,10 @@ public class RestUserController {
 
 		if(StringUtils.isBlank(mobile)||StringUtils.isBlank(password) || StringUtils.isBlank(event) ||StringUtils.isBlank(captcha)){
 			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
+		}
+
+		if(!StringUtils.equals(CommonConstant.SMS_EVENT_FORGET,event)){
+			return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(),ResultEnum.SMS_CODE_ERROR.getDesc(),null);
 		}
 
 		switch (ismsService.check(mobile, event, captcha)) {
