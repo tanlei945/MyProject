@@ -13,17 +13,17 @@ management:
     include: metrics,httptrace
     
 spring:
-  mail:
-    host: smtp.163.com
-    username: sanshixuxian@163.com
-    password: a75861943
-    properties:
-      mail: 
-        smtp: 
-          auth: true
-          starttls: 
-            enable: true
-            required: true
+#  mail:
+#    host: smtp.163.com
+#    username: sanshixuxian@163.com
+#    password: a75861943
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            required: true
   ## quartz定时任务,采用数据库方式
   quartz:
     job-store-type: jdbc
