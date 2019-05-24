@@ -113,22 +113,29 @@ public class RestUserController {
 	@ApiOperation(value = "用户注册", tags = {"用户接口"}, notes = "用户注册")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
-			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true),
+			@ApiImplicitParam(name = "event",value = "事件",dataType = "String",required = true),
+			@ApiImplicitParam(name = "captcha",value = "验证码",dataType = "String",required = true)
 	})
-	public RestResponseBean userRegister(@RequestParam String mobile, @RequestParam String password) {
+	public RestResponseBean userRegister(@RequestParam String mobile, @RequestParam String password, @RequestParam String event, @RequestParam String captcha) {
 
-
-		if(org.apache.commons.lang3.StringUtils.equals(mobile,"")|| org.apache.commons.lang3.StringUtils
-				.equals(password,"")){
+		if(StringUtils.isBlank(mobile)||StringUtils.isBlank(password) || StringUtils.isBlank(event) ||StringUtils.isBlank(captcha)){
 			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
 		}
 
-		User userEntity = userService.queryByMobile(mobile);
-		if(userEntity != null){
-			return new RestResponseBean(ResultEnum.MOBILE_EXIST_REGISTER.getValue(),ResultEnum.MOBILE_EXIST_REGISTER.getDesc(),null);
-		}
-
 		try {
+
+			switch (ismsService.check(mobile, event, captcha)) {
+				case 1:
+					return new RestResponseBean(ResultEnum.SMS_CODE_OVERTIME.getValue(), ResultEnum.SMS_CODE_OVERTIME.getDesc(), null);
+				case 2:
+					return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(), ResultEnum.SMS_CODE_ERROR.getDesc(), null);
+			}
+
+			User userEntity = userService.queryByMobile(mobile);
+			if(userEntity != null){
+				return new RestResponseBean(ResultEnum.MOBILE_EXIST_REGISTER.getValue(),ResultEnum.MOBILE_EXIST_REGISTER.getDesc(),null);
+			}
 
 			User user = userService.userRegister(mobile, password);
 
@@ -337,12 +344,19 @@ public class RestUserController {
 			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
 			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
 	})
-	public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password){
+	public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password,@RequestParam String event,@RequestParam String captcha){
 
-		if(StringUtils.equals(mobile,"")|| StringUtils
-				.equals(password,"")){
-			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(), ResultEnum.PARAMETER_MISSING.getDesc(), null);
+		if(StringUtils.isBlank(mobile)||StringUtils.isBlank(password) || StringUtils.isBlank(event) ||StringUtils.isBlank(captcha)){
+			return new RestResponseBean(ResultEnum.PARAMETER_MISSING.getValue(),ResultEnum.PARAMETER_MISSING.getDesc(),null);
 		}
+
+		switch (ismsService.check(mobile, event, captcha)) {
+			case 1:
+				return new RestResponseBean(ResultEnum.SMS_CODE_OVERTIME.getValue(), ResultEnum.SMS_CODE_OVERTIME.getDesc(), null);
+			case 2:
+				return new RestResponseBean(ResultEnum.SMS_CODE_ERROR.getValue(), ResultEnum.SMS_CODE_ERROR.getDesc(), null);
+		}
+
 
 		if(userService.forgetPassword(mobile,password) == 0){
 			return new RestResponseBean(ResultEnum.ERROR.getValue(),ResultEnum.ERROR.getDesc(),null);
