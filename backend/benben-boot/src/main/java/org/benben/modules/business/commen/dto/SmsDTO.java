@@ -26,6 +26,8 @@ public class SmsDTO {
 	@ApiModelProperty(value = "短信事件",name = "event",required = true,example = "1、register2、login3、forget")
     private String event;
 
+	@NotNull(message = "验证码不能为空")
+	@NotBlank(message = "验证码不能为空")
 	@ApiModelProperty(value = "短信验证码",name = "captcha")
     private String captcha;
 
