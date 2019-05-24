@@ -350,7 +350,9 @@ public class RestUserController {
 	@ApiOperation(value = "忘记密码/修改密码", tags = {"用户接口"}, notes = "忘记密码/修改密码")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "mobile",value = "用户手机号",dataType = "String",required = true),
-			@ApiImplicitParam(name = "password",value = "用户密码",dataType = "String",required = true)
+			@ApiImplicitParam(name = "password",value = "用户新密码",dataType = "String",required = true),
+			@ApiImplicitParam(name = "event",value = "事件",dataType = "String",required = true),
+			@ApiImplicitParam(name = "captcha",value = "验证码",dataType = "String",required = true)
 	})
 	public RestResponseBean forgetPassword(@RequestParam String mobile,@RequestParam String password,@RequestParam String event,@RequestParam String captcha){
 
